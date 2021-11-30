@@ -1,4 +1,9 @@
 import { main } from "./src/main";
 
-main();
-process.stdout.write(" then index\n");
+(async () => {
+  try {
+    await main();
+  } catch (e) {
+    console.error(e);
+  }
+})();

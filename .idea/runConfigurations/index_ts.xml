@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="index.ts" type="NodeJSConfigurationType" application-parameters="--project tsconfig.json" nameIsGenerated="true" node-parameters="--require ts-node/register" path-to-js-file="index.ts" working-dir="$PROJECT_DIR$">
+    <envs>
+      <env name="TS_NODE_FILES" value="true" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

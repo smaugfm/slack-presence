@@ -1,8 +1,0 @@
-{
-  "stop": true,
-  "interval": 2,
-  "startHour": 8,
-  "startMinute": 0,
-  "stopHour": 16,
-  "stopMinute": 0
-}

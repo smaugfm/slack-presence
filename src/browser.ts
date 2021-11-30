@@ -35,12 +35,10 @@ export async function loadSlack(page: Page, url: string) {
     log.info("Done. Slack has been fully loaded.");
     return true;
   } catch (e) {
-    if (e instanceof TimeoutError) {
-      log.info(e.message);
-      log.info("Slack failed to load.");
-      await takeScreenshot(page);
-      return false;
-    }
+    log.error(e);
+    log.info("Slack failed to load.");
+    await takeScreenshot(page);
+    return false;
   }
 }
 

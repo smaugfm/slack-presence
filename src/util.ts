@@ -8,8 +8,9 @@ import TelegramBot from "node-telegram-bot-api";
 export const log = createSimpleLogger();
 
 export async function takeScreenshot(page: Page) {
-  log.info("Saving screenshot...");
-  return page.screenshot({ path: "screenshot.png" });
+  const now = new Date().toISOString();
+  log.info(`Saving screenshot-${now}.png.`);
+  return page.screenshot({ path: `screenshot-${new Date().toISOString()}.png` });
 }
 
 export function formatTime(hour?: number, minute?: number) {

@@ -12,9 +12,11 @@ const statusSelector =
   "div > " +
   "i.c-icon.p-ia__nav__user__presence";
 
-export async function createBrowser() {
+export async function createBrowser(onlyChrome: boolean) {
   const browser = await puppeteer.launch({
     userDataDir: "./.chrome",
+    debuggingPort: 9333,
+    args: ["--remote-debugging-address=0.0.0.0", "--disable-gpu"],
     headless: true,
   });
 

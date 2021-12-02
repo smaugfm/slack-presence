@@ -78,6 +78,8 @@ export function checkUser(msg: TelegramBot.Message) {
   return false;
 }
 
+export const slackUrl = "https://app.slack.com/client/T04BNC2CD/C04BNC2FH";
+
 export async function readOptions(path: string): Promise<Options> {
   try {
     return JSON.parse((await fs.readFile(path)).toString("utf-8"));

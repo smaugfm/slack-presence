@@ -1,6 +1,7 @@
 import { createBrowser, loadSlack } from "./browser";
 import TelegramBot from "node-telegram-bot-api";
 import { Job } from "node-schedule";
+import { ChildProcess, exec } from "child_process";
 import {
   checkUser,
   createSchedule,
@@ -9,9 +10,12 @@ import {
   log,
   masterChatId,
   readOptions,
+  slackUrl,
   writeOptions,
 } from "./util";
 import prettyMilliseconds from "pretty-ms";
+import { Browser, Page } from "puppeteer";
+import * as util from "util";
 
 export type Options = {
   stop: boolean;
@@ -29,6 +33,14 @@ export async function main() {
 
   let options = await readOptions(optionsPath);
   log.info("Options read: ", options);
+
+  let tmpBrowser: ChildProcess | undefined;
+
+  let browser: Browser | undefined;
+  let page: Page | undefined;
+  const res = await createBrowser();
+  browser = res.browser;
+  page = res.page;
 
   async function saveOptions(newOptions: Partial<Options>) {
     options = {
@@ -53,6 +65,36 @@ export async function main() {
 
     await saveOptions({ stop: true });
     await bot.sendMessage(msg.chat.id, "Stopped slack Active presence");
+  });
+
+  bot.onText(/^\/stop.*$/, async msg => {
+    if (checkUser(msg)) return;
+
+    await saveOptions({ stop: true });
+    await bot.sendMessage(msg.chat.id, "Stopped slack Active presence");
+  });
+
+  bot.onText(/^\/relogin.*$/, async msg => {
+    if (checkUser(msg)) return;
+
+    if (tmpBrowser) {
+      await bot.sendMessage(msg.chat.id, "Killing temporary chrome");
+
+      tmpBrowser.kill();
+      tmpBrowser = undefined;
+    } else {
+      await bot.sendMessage(
+        msg.chat.id,
+        "Stopping Active presence and opening temporary chrome on port 9222. When finished send this command again",
+      );
+
+      await saveOptions({ stop: true });
+
+      tmpBrowser = exec(
+        "google-chrome --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 " +
+          `${slackUrl} --headless --disable-gpu --no-sandbox --user-data-dir="chrome"`,
+      );
+    }
   });
 
   bot.onText(/^\/schedule(\s+(\d+:\d+)\s+(\d+:\d+))?.*$/, async (msg, groups) => {
@@ -112,12 +154,16 @@ export async function main() {
     await bot.sendMessage(msg.chat.id, "Schedule has been cleared");
   });
 
-  const { browser, page } = await createBrowser();
-
   try {
     while (true) {
       while (!options?.stop) {
-        const loaded = await loadSlack(page, "https://app.slack.com/client/T04BNC2CD/C04BNC2FH");
+        if (!browser || !page) {
+          const res = await createBrowser();
+          browser = res.browser;
+          page = res.page;
+        }
+
+        const loaded = await loadSlack(page, slackUrl);
         if (!loaded) {
           log.info("Failed to load slack.");
           await bot.sendMessage(masterChatId, "Failed to load Slack. Stopping automatic reload.");

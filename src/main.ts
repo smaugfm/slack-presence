@@ -67,13 +67,6 @@ export async function main() {
     await bot.sendMessage(msg.chat.id, "Stopped slack Active presence");
   });
 
-  bot.onText(/^\/stop.*$/, async msg => {
-    if (checkUser(msg)) return;
-
-    await saveOptions({ stop: true });
-    await bot.sendMessage(msg.chat.id, "Stopped slack Active presence");
-  });
-
   bot.onText(/^\/relogin.*$/, async msg => {
     if (checkUser(msg)) return;
 

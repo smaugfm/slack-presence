@@ -53,8 +53,8 @@ function getIsActiveFunc() {
 export async function spoofHeadless(page: Page) {
   // Pass the User-Agent Test.
   const userAgent =
-    "Mozilla/5.0 (X11; Linux x86_64)" +
-    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.39 Safari/537.36";
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 " +
+    "(KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36";
   await page.setUserAgent(userAgent);
 
   // Pass the Webdriver Test.

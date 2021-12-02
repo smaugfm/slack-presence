@@ -9,7 +9,8 @@ screenshot.png
 .pnp.js
 
 #chrome data dir
-.chrome
+/.chrome
+/chrome
 
 # testing
 /coverage

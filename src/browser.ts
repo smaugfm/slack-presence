@@ -14,7 +14,7 @@ const statusSelector =
 
 export async function createBrowser() {
   const browser = await puppeteer.launch({
-    userDataDir: "./.chrome",
+    userDataDir: "chrome",
     dumpio: true,
     debuggingPort: 9222,
     args: ["--remote-debugging-address=0.0.0.0", "--disable-gpu"],

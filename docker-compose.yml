@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  slack-presence:
+    build: ./
+    restart: unless-stopped
+    ports:
+      - "9222:9222"
+    environment:
+      MASTER_CHAT_ID: ${MASTER_CHAT_ID}
+      BOT_TOKEN: ${BOT_TOKEN}
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - ./chrome:/opt/app/chrome
+      - ./options.json:/opt/app/options.json

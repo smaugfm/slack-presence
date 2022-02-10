@@ -1,5 +1,12 @@
-import puppeteer, { Page, TimeoutError } from "puppeteer";
-import { log, takeScreenshot } from "./util";
+import puppeteer, {
+  BrowserConnectOptions,
+  BrowserLaunchArgumentOptions,
+  LaunchOptions,
+  Page,
+} from "puppeteer";
+import { log } from "./util";
+import * as fs from "fs/promises";
+import TelegramBot from "node-telegram-bot-api";
 
 const topNavSelector = "body > div.p-client_container > div.p-client > div.p-top_nav";
 const statusSelector =
@@ -12,10 +19,22 @@ const statusSelector =
   "div > " +
   "i.c-icon.p-ia__nav__user__presence";
 
-export async function createBrowser() {
+export async function createBrowser(
+  userDataDir: string,
+  debuggingPort: number,
+  options: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions = {},
+) {
+  await ensureUserDir(userDataDir);
+
   const browser = await puppeteer.launch({
-    userDataDir: "chrome",
+    userDataDir,
     headless: true,
+    args: [
+      "--disable-dev-shm-usage",
+      "--remote-debugging-address=0.0.0.0",
+      `--remote-debugging-port=${debuggingPort}`,
+    ],
+    ...options,
   });
 
   const page = await browser.newPage();
@@ -24,7 +43,23 @@ export async function createBrowser() {
   return { browser, page };
 }
 
-export async function loadSlack(page: Page, url: string) {
+async function ensureUserDir(userDataDir: string) {
+  try {
+    const s = await fs.stat(userDataDir);
+    log.info("Found directory", s);
+    if (s.isFile()) {
+      log.error(`Directory ${userDataDir} is a file. `);
+      process.exit(1);
+    }
+  } catch (err: any) {
+    log.error(`Directory ${userDataDir} is missing. Creating...`);
+    if (err.code === "ENOENT") {
+      await fs.mkdir(userDataDir);
+    }
+  }
+}
+
+export async function loadSlack(bot: TelegramBot, page: Page, url: string): Promise<boolean> {
   log.info("Waiting for Slack to load...");
   await page.goto(url);
   try {
@@ -35,9 +70,8 @@ export async function loadSlack(page: Page, url: string) {
     log.info("Done. Slack has been fully loaded.");
     return true;
   } catch (e) {
-    log.error(e);
     log.info("Slack failed to load.");
-    await takeScreenshot(page);
+    log.error(e);
     return false;
   }
 }

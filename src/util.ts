@@ -6,11 +6,12 @@ import { promises as fs } from "fs";
 import TelegramBot from "node-telegram-bot-api";
 
 export const log = createSimpleLogger();
+export const chromeDebugPort = 9222;
 
-export async function takeScreenshot(page: Page) {
+export function takeScreenshot(page: Page): Promise<Buffer> {
   const now = new Date().toISOString();
   log.info(`Saving screenshot-${now}.png.`);
-  return page.screenshot({ path: `screenshot-${new Date().toISOString()}.png` });
+  return page.screenshot({ type: "png", encoding: "binary" }) as Promise<Buffer>;
 }
 
 export function formatTime(hour?: number, minute?: number) {
@@ -79,19 +80,26 @@ export function checkUser(msg: TelegramBot.Message) {
   return false;
 }
 
-export const slackUrl = "https://app.slack.com/client/T04BNC2CD/C04BNC2FH";
+const defaultOptions: Options = {
+  stop: false,
+  intervalMinutes: 2,
+  slackUrl: "https://app.slack.com",
+  userDataDir: "chrome",
+  startHour: 8,
+  startMinute: 0,
+  stopHour: 16,
+  stopMinute: 0,
+};
 
 export async function readOptions(path: string): Promise<Options> {
   try {
-    return JSON.parse((await fs.readFile(path)).toString("utf-8"));
-  } catch {
+    const options = JSON.parse((await fs.readFile(path)).toString("utf-8")) as Partial<Options>;
+
     return {
-      stop: false,
-      interval: 2 * 60 * 1000,
-      startHour: 8,
-      startMinute: 0,
-      stopHour: 16,
-      stopMinute: 0,
+      ...defaultOptions,
+      ...options,
     };
+  } catch {
+    return defaultOptions;
   }
 }

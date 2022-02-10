@@ -1,25 +1,26 @@
 import { createBrowser, loadSlack } from "./browser";
 import TelegramBot from "node-telegram-bot-api";
 import { Job } from "node-schedule";
-import { ChildProcess, exec } from "child_process";
 import {
   checkUser,
+  chromeDebugPort,
   createSchedule,
   delay,
   formatTime,
   log,
   masterChatId,
   readOptions,
-  slackUrl,
+  takeScreenshot,
   writeOptions,
 } from "./util";
 import prettyMilliseconds from "pretty-ms";
 import { Browser, Page } from "puppeteer";
-import * as util from "util";
 
 export type Options = {
   stop: boolean;
-  interval: number;
+  intervalMinutes: number;
+  slackUrl: string;
+  userDataDir: string;
 
   startHour?: number;
   startMinute?: number;
@@ -34,11 +35,9 @@ export async function main() {
   let options = await readOptions(optionsPath);
   log.info("Options read: ", options);
 
-  let tmpBrowser: ChildProcess | undefined;
-
   let browser: Browser | undefined;
   let page: Page | undefined;
-  const res = await createBrowser();
+  const res = await createBrowser(options.userDataDir, chromeDebugPort);
   browser = res.browser;
   page = res.page;
 
@@ -67,30 +66,7 @@ export async function main() {
     await bot.sendMessage(msg.chat.id, "Stopped slack Active presence");
   });
 
-  bot.onText(/^\/relogin.*$/, async msg => {
-    if (checkUser(msg)) return;
-
-    if (tmpBrowser) {
-      await bot.sendMessage(msg.chat.id, "Killing temporary chrome");
-
-      tmpBrowser.kill();
-      tmpBrowser = undefined;
-    } else {
-      await bot.sendMessage(
-        msg.chat.id,
-        "Stopping Active presence and opening temporary chrome on port 9222. When finished send this command again",
-      );
-
-      await saveOptions({ stop: true });
-
-      tmpBrowser = exec(
-        "google-chrome --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 " +
-          `${slackUrl} --headless --disable-gpu --no-sandbox --user-data-dir="chrome"`,
-      );
-    }
-  });
-
-  bot.onText(/^\/schedule(\s+(\d+:\d+)\s+(\d+:\d+))?.*$/, async (msg, groups) => {
+  bot.onText(/^\/set-schedule(\s+(\d+:\d+)\s+(\d+:\d+))?.*$/, async (msg, groups) => {
     if (checkUser(msg)) return;
 
     if (!groups?.[1]) {
@@ -116,10 +92,7 @@ export async function main() {
       });
     } catch (e) {
       log.error(e);
-      await bot.sendMessage(
-        msg.chat.id,
-        "Wrong date format. Date should be like this: 08:00 16:00",
-      );
+      await bot.sendMessage(msg.chat.id, "Wrong date format. Example: 08:00 16:00");
       return;
     }
 
@@ -133,7 +106,7 @@ export async function main() {
       )}. ` + `and finishing at ${formatTime(options?.stopMinute, options?.stopMinute)}`,
     );
   });
-  bot.onText(/^\/remove.*$/, async msg => {
+  bot.onText(/^\/remove-schedule.*$/, async msg => {
     if (checkUser(msg)) return;
 
     await saveOptions({
@@ -151,19 +124,29 @@ export async function main() {
     while (true) {
       while (!options?.stop) {
         if (!browser || !page) {
-          const res = await createBrowser();
+          const res = await createBrowser(options.userDataDir, chromeDebugPort);
           browser = res.browser;
           page = res.page;
         }
 
-        const loaded = await loadSlack(page, slackUrl);
+        const loaded = await loadSlack(bot, page, options.slackUrl);
         if (!loaded) {
-          log.info("Failed to load slack.");
-          await bot.sendMessage(masterChatId, "Failed to load Slack. Stopping automatic reload.");
           await saveOptions({ stop: true });
+          const screenShot = await takeScreenshot(page);
+          await bot.sendPhoto(masterChatId, screenShot, {
+            caption: "Failed to load Slack. Stopping automatic reloading. Here is a screenshot of current headless Chrome screen.",
+          });
+          await bot.sendMessage(
+            masterChatId,
+            `Slack login session has probably expired\\.\nGo to chrome *chrome://inspect* tab in Chrome browser, connect to this ` +
+              `headless Chrome instance and manually re\\-login to Slack\\. To re\\-activate Slack online presence send me a /start command\\.`,
+            {
+              parse_mode: "MarkdownV2",
+            },
+          );
           break;
         }
-        const interval = options.interval * 1000 * 60;
+        const interval = options.intervalMinutes * 1000 * 60;
         log.info(`Waiting for ${prettyMilliseconds(interval)}...`);
         await delay(interval);
       }

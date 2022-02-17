@@ -6,7 +6,6 @@ import puppeteer, {
 } from "puppeteer";
 import { log } from "./util";
 import * as fs from "fs/promises";
-import TelegramBot from "node-telegram-bot-api";
 
 const topNavSelector = "body > div.p-client_container > div.p-client > div.p-top_nav";
 const statusSelector =
@@ -59,7 +58,7 @@ async function ensureUserDir(userDataDir: string) {
   }
 }
 
-export async function loadSlack(bot: TelegramBot, page: Page, url: string): Promise<boolean> {
+export async function loadSlack(page: Page, url: string): Promise<boolean> {
   log.info("Waiting for Slack to load...");
   await page.goto(url);
   try {

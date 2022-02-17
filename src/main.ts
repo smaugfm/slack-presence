@@ -1,12 +1,10 @@
 import { createBrowser, loadSlack } from "./browser";
-import TelegramBot from "node-telegram-bot-api";
 import { Job } from "node-schedule";
+import en from "./en";
 import {
-  checkUser,
   chromeDebugPort,
   createSchedule,
   delay,
-  formatTime,
   log,
   masterChatId,
   readOptions,
@@ -15,6 +13,13 @@ import {
 } from "./util";
 import prettyMilliseconds from "pretty-ms";
 import { Browser, Page } from "puppeteer";
+import { session, Stage, Telegraf } from "telegraf";
+import { SceneContextMessageUpdate } from "telegraf/typings/stage";
+import { setupSetScheduleScene } from "./commands/setScheduleScene";
+import { setupOtherCommands } from "./commands/other";
+import i18next, { t } from "i18next";
+
+export type Context = SceneContextMessageUpdate;
 
 export type Options = {
   stop: boolean;
@@ -29,7 +34,13 @@ export type Options = {
 };
 
 export async function main() {
-  const bot = new TelegramBot(process.env.BOT_TOKEN as string, { polling: true });
+  await i18next.init({
+    lng: "en",
+    resources: {
+      en,
+    },
+  });
+  const bot = new Telegraf<Context>(process.env.BOT_TOKEN as string);
   const optionsPath = (process.env.OPTIONS_PATH as string) ?? "options.json";
 
   let options = await readOptions(optionsPath);
@@ -41,126 +52,87 @@ export async function main() {
   browser = res.browser;
   page = res.page;
 
+  const stage = new Stage<Context>([]);
+
   async function saveOptions(newOptions: Partial<Options>) {
     options = {
       ...options,
       ...newOptions,
     };
     log.info("Options saved: ", options);
+
+    schedule.forEach(x => x.cancel());
+    schedule = createSchedule(options);
     await writeOptions(optionsPath, options);
   }
 
   let schedule: Job[] = createSchedule(options);
 
-  bot.onText(/^\/start.*$/, async msg => {
-    if (checkUser(msg)) return;
-
-    await saveOptions({ stop: false });
-    await bot.sendMessage(msg.chat.id, "Started slack Active presence");
+  bot.use(session());
+  bot.use(stage.middleware());
+  bot.use((ctx, next) => {
+    if (ctx.from?.id !== masterChatId)
+      log.error(`Message from wrong user. Chat id: ${ctx.chat?.id}, From id: ${ctx.from?.id}`);
+    else return next();
   });
 
-  bot.onText(/^\/stop.*$/, async msg => {
-    if (checkUser(msg)) return;
-
-    await saveOptions({ stop: true });
-    await bot.sendMessage(msg.chat.id, "Stopped slack Active presence");
+  setupOtherCommands(bot, page, options, saveOptions);
+  setupSetScheduleScene(bot, stage, saveOptions);
+  bot.catch((err: Error) => {
+    log.error(err);
   });
 
-  bot.onText(/^\/set-schedule(\s+(\d+:\d+)\s+(\d+:\d+))?.*$/, async (msg, groups) => {
-    if (checkUser(msg)) return;
+  function slackLoop() {
+    setTimeout(async () => {
+      try {
+        while (!options?.stop) {
+          if (!browser || !page) {
+            const res = await createBrowser(options.userDataDir, chromeDebugPort);
+            browser = res.browser;
+            page = res.page;
+          }
 
-    if (!groups?.[1]) {
-      await bot.sendMessage(
-        msg.chat.id,
-        `Current schedule: starts at ${formatTime(
-          options.startHour,
-          options.startMinute,
-        )}, finishes at ${formatTime(options.stopHour, options.stopMinute)}`,
-      );
-      return;
-    }
+          const loaded = await loadSlack(page, options.slackUrl);
+          if (!loaded) {
+            await saveOptions({ stop: true });
+            const screenShot = await takeScreenshot(page);
 
-    try {
-      const start = groups?.[2]?.split(":")!!;
-      const stop = groups?.[3]?.split(":")!!;
-
-      await saveOptions({
-        startHour: parseInt(start[0], 10),
-        startMinute: parseInt(start[1], 10),
-        stopHour: parseInt(stop[0], 10),
-        stopMinute: parseInt(stop[1], 10),
-      });
-    } catch (e) {
-      log.error(e);
-      await bot.sendMessage(msg.chat.id, "Wrong date format. Example: 08:00 16:00");
-      return;
-    }
-
-    schedule = createSchedule(options);
-
-    await bot.sendMessage(
-      msg.chat.id,
-      `Schedule has been set up. Weekdays, starting at ${formatTime(
-        options?.startHour,
-        options?.startMinute,
-      )}. ` + `and finishing at ${formatTime(options?.stopMinute, options?.stopMinute)}`,
-    );
-  });
-  bot.onText(/^\/remove-schedule.*$/, async msg => {
-    if (checkUser(msg)) return;
-
-    await saveOptions({
-      startHour: undefined,
-      startMinute: undefined,
-      stopHour: undefined,
-      stopMinute: undefined,
-    });
-
-    schedule.forEach(x => x.cancel());
-    await bot.sendMessage(msg.chat.id, "Schedule has been cleared");
-  });
-
-  try {
-    while (true) {
-      while (!options?.stop) {
-        if (!browser || !page) {
-          const res = await createBrowser(options.userDataDir, chromeDebugPort);
-          browser = res.browser;
-          page = res.page;
-        }
-
-        const loaded = await loadSlack(bot, page, options.slackUrl);
-        if (!loaded) {
-          await saveOptions({ stop: true });
-          const screenShot = await takeScreenshot(page);
-          await bot.sendPhoto(masterChatId, screenShot, {
-            caption: "Failed to load Slack. Stopping automatic reloading. Here is a screenshot of current headless Chrome screen.",
-          });
-          await bot.sendMessage(
-            masterChatId,
-            `Slack login session has probably expired\\.\nGo to chrome *chrome://inspect* tab in Chrome browser, connect to this ` +
-              `headless Chrome instance and manually re\\-login to Slack\\. To re\\-activate Slack online presence send me a /start command\\.`,
-            {
+            await bot.telegram.sendPhoto(
+              masterChatId,
+              { source: screenShot },
+              {
+                caption:
+                  "Failed to load Slack. Stopping automatic reloading. Here is a screenshot of current headless Chrome screen.",
+              },
+            );
+            await bot.telegram.sendMessage(masterChatId, t("loginFailed"), {
               parse_mode: "MarkdownV2",
-            },
-          );
-          break;
+            });
+            break;
+          }
+          const interval = options.intervalMinutes * 1000 * 60;
+          log.info(`Waiting for ${prettyMilliseconds(interval)}...`);
+          await delay(interval);
         }
-        const interval = options.intervalMinutes * 1000 * 60;
-        log.info(`Waiting for ${prettyMilliseconds(interval)}...`);
-        await delay(interval);
-      }
-      log.info("Loop stopped.");
+        log.info("Loop stopped.");
 
-      while (options?.stop) {
-        await delay(1000);
+        while (options?.stop) {
+          await delay(1000);
+        }
+        log.info("Loop started.");
+        slackLoop();
+      } catch (e) {
+        log.error(e);
+        await bot.telegram.sendMessage(masterChatId, t("fatal"));
+        process.exit(1);
+      } finally {
+        await browser?.close();
       }
-      log.info("Loop started.");
-    }
-  } catch (e) {
-    log.error(e);
-    await bot.sendMessage(masterChatId, "Unexpected error occurred. Exiting bot");
-  } finally {
-    await browser.close();
+    }, 100);
   }
+
+  slackLoop();
+
+  log.info("Polling telegram updates...");
+  bot.startPolling();
 }

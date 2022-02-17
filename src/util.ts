@@ -3,7 +3,6 @@ import { Page } from "puppeteer";
 import { RecurrenceRule, scheduleJob } from "node-schedule";
 import { Options } from "./main";
 import { promises as fs } from "fs";
-import TelegramBot from "node-telegram-bot-api";
 
 export const log = createSimpleLogger();
 export const chromeDebugPort = 9222;
@@ -14,18 +13,18 @@ export function takeScreenshot(page: Page): Promise<Buffer> {
   return page.screenshot({ type: "png", encoding: "binary" }) as Promise<Buffer>;
 }
 
-export function formatTime(hour?: number, minute?: number) {
-  let hourStr = `${hour}`;
-  let minuteStr = `${minute}`;
-
-  if (hourStr.length === 1) hourStr = `0${hourStr}`;
-  if (minuteStr.length === 1) minuteStr = `0${minuteStr}`;
-
-  return `${hourStr}:${minuteStr}`;
-}
-
 export function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function formatTime(hour?: number, minute?: number) {
+  const pad = (n: number) =>
+    n.toLocaleString("en", {
+      minimumIntegerDigits: 2,
+      maximumFractionDigits: 0,
+      useGrouping: false,
+    });
+  return `${pad(hour || 0)}:${pad(minute || 0)}`;
 }
 
 export function createSchedule(options: Options) {
@@ -71,14 +70,6 @@ export function writeOptions(path: string, options: Partial<Options>) {
 }
 
 export const masterChatId = parseInt(process.env.MASTER_CHAT_ID as string, 10);
-
-export function checkUser(msg: TelegramBot.Message) {
-  if (msg?.from?.id !== masterChatId) {
-    log.error(`Message from wrong user. Chat_id: ${msg.chat.id}, From_id: ${msg?.from?.id}`);
-    return true;
-  }
-  return false;
-}
 
 const defaultOptions: Options = {
   stop: false,

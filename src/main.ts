@@ -65,11 +65,15 @@ export async function main() {
     log.info("Options saved: ", options);
 
     schedule.forEach(x => x.cancel());
-    schedule = createSchedule(options);
+    schedule = createSchedule(options, msg =>
+      bot.telegram.sendMessage(masterChatId, msg, { disable_notification: true }),
+    );
     await writeOptions(optionsPath, options);
   }
 
-  let schedule: Job[] = createSchedule(options);
+  let schedule: Job[] = createSchedule(options, msg =>
+    bot.telegram.sendMessage(masterChatId, msg, { disable_notification: true }),
+  );
 
   bot.use(session());
   bot.use(stage.middleware());

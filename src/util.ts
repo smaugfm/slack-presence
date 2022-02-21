@@ -3,6 +3,8 @@ import { Page } from "puppeteer";
 import { RecurrenceRule, scheduleJob } from "node-schedule";
 import { Options } from "./main";
 import { promises as fs } from "fs";
+import { t } from "i18next";
+import { t } from "i18next";
 
 export const log = createSimpleLogger();
 export const chromeDebugPort = 9222;
@@ -26,7 +28,7 @@ export function formatTime(hour?: number, minute?: number) {
   return `${pad(hour || 0)}:${pad(minute || 0)}`;
 }
 
-export function createSchedule(options: Options) {
+export function createSchedule(options: Options, sendMessage: (msg: string) => Promise<any>) {
   if (
     !(
       "startHour" in options &&
@@ -55,11 +57,19 @@ export function createSchedule(options: Options) {
   stopRule.minute = options.stopMinute!!;
 
   return [
-    scheduleJob(startRule, () => {
+    scheduleJob(startRule, async () => {
       options.stop = false;
+      await sendMessage(
+        t("commands.start", {
+          displayUrl: new URL(options.slackUrl).hostname.replaceAll(".", "\\."),
+          start: formatTime(options.startHour, options.startMinute),
+          end: formatTime(options.stopHour, options.stopMinute),
+        }),
+      );
     }),
-    scheduleJob(stopRule, () => {
+    scheduleJob(stopRule, async () => {
       options.stop = true;
+      await sendMessage("commands.stop");
     }),
   ];
 }

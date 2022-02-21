@@ -6,17 +6,23 @@ import { t } from "i18next";
 
 export function setupOtherCommands(
   bot: Telegraf<Context>,
-  page: Page | undefined,
-  options: Options,
+  getPage: () => Page | undefined,
+  getOptions: () => Options,
   saveOptions: (newOptions: Partial<Options>) => void,
 ) {
   bot.start(async ctx => {
     await saveOptions({ stop: false });
+    const options = getOptions();
     await ctx.reply(
       t("commands.start", {
+        url: options.slackUrl,
+        displayUrl: new URL(options.slackUrl).hostname.replaceAll(".", "\\."),
         start: formatTime(options.startHour, options.startMinute),
         end: formatTime(options.stopHour, options.stopMinute),
       }),
+      {
+        parse_mode: "MarkdownV2",
+      },
     );
   });
 
@@ -37,11 +43,12 @@ export function setupOtherCommands(
   });
 
   bot.command("screenshot", async ctx => {
+    const page = getPage();
     if (page) {
       const screenShot = await takeScreenshot(page);
       await ctx.replyWithPhoto({ source: screenShot });
     } else {
-      await ctx.reply(t("error"));
+      await ctx.reply(t("pageClosed"));
     }
   });
 }

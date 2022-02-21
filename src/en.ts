@@ -1,7 +1,7 @@
 export default {
   translation: {
     commands: {
-      start: "Starting to appear online on Slack from {{start}} to {{end}}",
+      start: "Starting to appear online on Slack at [{{displayUrl}}]({{url}}) from {{start}} to {{end}}",
       stop: "Stopping to appear online on Slack",
       clearschedule: "Online appearance schedule has been cleared",
       setschedule: {
@@ -13,6 +13,7 @@ export default {
     loginFailed:
       "Slack login session has probably expired\\.\nGo to chrome *chrome://inspect* tab in Chrome browser, connect to this " +
       "headless Chrome instance and manually re\\-login to Slack\\. To re\\-activate Slack online presence send me a /start command\\.",
+    pageClosed: "Presence is stopped so no page to make screenshot of",
     error: "Unexpected error occurred.",
     fatal: "Unexpected error occurred. Exiting bot",
   },

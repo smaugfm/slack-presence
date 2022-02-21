@@ -36,6 +36,9 @@ export type Options = {
 export async function main() {
   await i18next.init({
     lng: "en",
+    interpolation: {
+      escapeValue: false,
+    },
     resources: {
       en,
     },
@@ -76,7 +79,12 @@ export async function main() {
     else return next();
   });
 
-  setupOtherCommands(bot, page, options, saveOptions);
+  setupOtherCommands(
+    bot,
+    () => page,
+    () => options,
+    saveOptions,
+  );
   setupSetScheduleScene(bot, stage, saveOptions);
   bot.catch((err: Error) => {
     log.error(err);
@@ -125,8 +133,6 @@ export async function main() {
         log.error(e);
         await bot.telegram.sendMessage(masterChatId, t("fatal"));
         process.exit(1);
-      } finally {
-        await browser?.close();
       }
     }, 100);
   }

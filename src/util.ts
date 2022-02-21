@@ -9,7 +9,6 @@ export const chromeDebugPort = 9222;
 
 export function takeScreenshot(page: Page): Promise<Buffer> {
   const now = new Date().toISOString();
-  log.info(`Saving screenshot-${now}.png.`);
   return page.screenshot({ type: "png", encoding: "binary" }) as Promise<Buffer>;
 }
 

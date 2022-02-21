@@ -4,7 +4,6 @@ import { RecurrenceRule, scheduleJob } from "node-schedule";
 import { Options } from "./main";
 import { promises as fs } from "fs";
 import { t } from "i18next";
-import { t } from "i18next";
 
 export const log = createSimpleLogger();
 export const chromeDebugPort = 9222;

@@ -68,7 +68,7 @@ export function createSchedule(options: Options, sendMessage: (msg: string) => P
     }),
     scheduleJob(stopRule, async () => {
       options.stop = true;
-      await sendMessage("commands.stop");
+      await sendMessage(t("commands.stop"));
     }),
   ];
 }

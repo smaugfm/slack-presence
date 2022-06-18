@@ -4,11 +4,10 @@ services:
   slack-presence:
     build: ./
     restart: unless-stopped
+    env_file: .env
     ports:
       - "9222:9222"
-    environment:
-      MASTER_CHAT_ID: ${MASTER_CHAT_ID}
-      BOT_TOKEN: ${BOT_TOKEN}
+      - "8080:8080"
     cap_add:
       - SYS_ADMIN
     volumes:

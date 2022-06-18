@@ -28,9 +28,13 @@ COPY package*.json yarn.lock ./
 RUN yarn install
 
 COPY . .
+RUN yarn build
 
+ENV PORT=8080
+ENV HOST=0.0.0.0
 ENV TS_NODE_FILES=true
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "--require", "ts-node/register", "index.ts", "--project", "tsconfig.json"]
-
 EXPOSE 9222
+EXPOSE $PORT
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["yarn", "express"]
+

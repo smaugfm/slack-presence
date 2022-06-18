@@ -1,0 +1,16 @@
+{
+  "env": {
+    "es2020": true,
+    "node": true
+  },
+  "extends": [
+    "react-app",
+    "prettier"
+  ],
+  "plugins": [
+    "@emotion"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2020
+  }
+}

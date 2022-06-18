@@ -1,24 +1,42 @@
 {
   "compilerOptions": {
-    "lib": ["esnext", "dom"],
-    "outDir": "dist",
     "target": "esnext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": true,
-    "removeComments": true,
     "preserveConstEnums": true,
-    "sourceMap": true,
+    "removeComments": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "isolatedModules": false,
     "downlevelIteration": true,
-    "allowJs": true,
-    "skipLibCheck": false,
-    "esModuleInterop": true,
-    "strict": true,
-    "types": ["node", "@types/jest"],
-    "typeRoots": ["./node_modules/@types", "./src/@types"]
+    "sourceMap": true,
+    "noEmit": true,
+    "types": [
+      "node",
+      "@types/jest"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/@types",
+      "./server/@types"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "@emotion/react"
   },
-  "include": ["src/**/*", "test/**/*", "index.ts"]
+  "include": [
+    "src",
+    "server"
+  ]
 }

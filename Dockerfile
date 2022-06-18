@@ -28,6 +28,8 @@ COPY package*.json yarn.lock ./
 RUN yarn install
 
 COPY . .
+ARG REACT_APP_WS_PORT
+ENV REACT_APP_WS_PORT $REACT_APP_WS_PORT
 RUN yarn build
 
 ENV PORT=8080

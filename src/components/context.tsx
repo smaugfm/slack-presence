@@ -67,8 +67,9 @@ const connectionStatus = {
 };
 
 export function ServerContext(props: PropsWithChildren<unknown>) {
+  const port = process.env.REACT_APP_WS_PORT ?? '8080';
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket<WsServerMessage>(
-    `ws://${window.location.hostname}:8080/api/socket`,
+    `ws://${window.location.hostname}:${port}/api/socket`,
   );
   useEffect(() => {
     if (readyState) console.log('[ws] ' + connectionStatus[readyState]);

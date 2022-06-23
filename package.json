@@ -2,7 +2,7 @@
   "name": "slack-presence",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8080",
+  "proxy": "http://localhost:9333",
   "scripts": {
     "express": "node -r ts-node/register server/index.ts --project tsconfig.json",
     "chrome": "node -r ts-node/register server/only-chrome.ts --project tsconfig.json",

@@ -5,11 +5,11 @@ services:
     build:
       context: .
       args:
-        - REACT_APP_WS_PORT=8080
+        - REACT_APP_WS_PORT=9333
     restart: unless-stopped
     ports:
       - "9222:9222"
-      - "8080:8080"
+      - "9333:9333"
     environment:
       - PUSHOVER_USER_KEY=
       - PUSHOVER_API_TOKEN=

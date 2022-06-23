@@ -67,7 +67,7 @@ const connectionStatus = {
 };
 
 export function ServerContext(props: PropsWithChildren<unknown>) {
-  const port = process.env.REACT_APP_WS_PORT || '8080';
+  const port = process.env.REACT_APP_WS_PORT || '9333';
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket<WsServerMessage>(
     `ws://${window.location.hostname}:${port}/api/socket`,
   );

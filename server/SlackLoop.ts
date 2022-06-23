@@ -229,7 +229,7 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
     await waitForCondition(
       async () => {
         if (this.page) {
-          if (await isSlackLoaded(this.page, false, 500)) {
+          if (await isSlackLoaded(this.page, false, 2000)) {
             await this.saveOptions({ enabled: true });
             return true;
           }

@@ -101,7 +101,7 @@ export async function getName(page: Page) {
 
 export async function waitForSelector(page: Page, selector: string, name?: string) {
   try {
-    await page.waitForSelector(selector, { timeout: 500 });
+    await page.waitForSelector(selector, { timeout: 2000 });
     return true;
   } catch (e) {
     if (name) log.error(`Failed to get ${name}. `, e);

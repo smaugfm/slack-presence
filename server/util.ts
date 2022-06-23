@@ -1,5 +1,5 @@
 import { createSimpleLogger } from 'simple-node-logger';
-import { Response, Request, IRouter, Application } from 'express';
+import { Application, IRouter, Request, Response } from 'express';
 import WebSocket from 'ws';
 import { Page } from 'puppeteer';
 import fs from 'fs';

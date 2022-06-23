@@ -1,11 +1,11 @@
 import axios from 'axios';
 import FormData from 'form-data';
-import {log} from './util';
+import { log } from './util';
 
 export async function pushoverNotify(
-    title: string,
-    message: string,
-    getImage?: () => Promise<Buffer> | undefined,
+  title: string,
+  message: string,
+  getImage?: () => Promise<Buffer> | undefined,
 ): Promise<void> {
   const userKey = process.env.PUSHOVER_USER_KEY;
   const apiToken = process.env.PUSHOVER_API_TOKEN;
@@ -20,7 +20,7 @@ export async function pushoverNotify(
   form.append('title', title);
   form.append('message', message);
   const image = await getImage?.();
-  if (image) form.append('attachment', image, {filename: 'chrome.jpeg'});
+  if (image) form.append('attachment', image, { filename: 'chrome.jpeg' });
 
   return axios.post('https://api.pushover.net/1/messages.json', form, {
     headers: form.getHeaders(),

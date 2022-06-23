@@ -1,4 +1,4 @@
-import { createBrowser, getAvatarUrls, getName, loadSlack } from './browser';
+import { createBrowser, loadSlack } from './browser';
 import { config } from 'dotenv';
 import { pushoverNotify } from './pushover';
 import { takeScreenshot } from './util';

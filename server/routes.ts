@@ -4,7 +4,7 @@ import path from 'path';
 import WebSocket from 'ws';
 import { SlackLoop } from './SlackLoop';
 import { Options } from '../src/common/common';
-import { log, route, onWsMessage, wsSend } from './util';
+import { log, onWsMessage, route, wsSend } from './util';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 

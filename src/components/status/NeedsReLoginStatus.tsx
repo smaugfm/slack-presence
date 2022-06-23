@@ -17,11 +17,11 @@ export function NeedsReLoginStatus(props: Props) {
     <>
       <Column sx={{ alignItems: 'center' }}>
         <Body1>
-          Slack Presence couldn't load your Slack workspace. Most likely, your Slack Login session
-          has expired and you have to re-login manually.<br />
-          Click the button below to open Slack presence internal browser
-          and then login to your Slack workspace.
-          When you are done enable Slack presence again.
+          Slack Presence couldn't load your Slack workspace. Most likely, your Slack Login
+          session has expired and you have to re-login manually.
+          <br />
+          Click the button below to open Slack presence internal browser and then login to
+          your Slack workspace. When you are done enable Slack presence again.
         </Body1>
         <Button
           sx={{ my: 2 }}
@@ -33,10 +33,7 @@ export function NeedsReLoginStatus(props: Props) {
         </Button>
         <Body2>
           If you see a blank page you may have to enable third-party cookies. Click{' '}
-          <Link
-            href='#'
-            onClick={() => setThirdPartyGuide(true)}
-          >
+          <Link href='#' onClick={() => setThirdPartyGuide(true)}>
             here
           </Link>{' '}
           here to see how to do this.

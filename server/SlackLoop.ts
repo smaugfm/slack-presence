@@ -6,7 +6,7 @@ import {
   takeScreenshot,
   writeOptions,
 } from './util';
-import {Browser, Page} from 'puppeteer';
+import { Browser, Page } from 'puppeteer';
 import {
   createBrowser,
   getAvatarUrls,
@@ -16,13 +16,13 @@ import {
   SlackLoadingResult,
 } from './browser';
 import prettyMilliseconds from 'pretty-ms';
-import {Options, SlackStatus, waitForCondition} from '../src/common/common';
+import { Options, SlackStatus, waitForCondition } from '../src/common/common';
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
-import {Schedule} from './Schedule';
-import {isEqual} from 'lodash';
+import { Schedule } from './Schedule';
+import { isEqual } from 'lodash';
 import axios from 'axios';
-import {pushoverNotify} from './pushover';
+import { pushoverNotify } from './pushover';
 
 type SlackLoopEvents = {
   status: (status: SlackStatus) => void;
@@ -34,7 +34,7 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
   private page: Page | undefined;
   private readonly schedule: Schedule;
   private opts: Options;
-  private internalStatus: SlackStatus = {status: 'inactive'};
+  private internalStatus: SlackStatus = { status: 'inactive' };
 
   constructor() {
     super();
@@ -46,30 +46,30 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
       log.error('No startDate in options.');
     }
     this.schedule = new Schedule(
-        this.opts.start,
-        this.opts.end,
-        async () => {
-          log.info('[schedule] Presence enabled');
-          await Promise.all([
-            this.saveOptions({
-              enabled: true,
-            }),
-            this.notify(
-                'Slack presence started',
-                'Starting to appear online on Slack at ' +
-                `${this.opts.slackUrl} from ${this.opts.start} to ${this.opts.end}.`,
-            ),
-          ]);
-        },
-        async () => {
-          log.info('[schedule] Presence disabled');
-          await Promise.all([
-            this.saveOptions({
-              enabled: false,
-            }),
-            this.notify('Slack presence stopped', 'Stopping to appear online on Slack.'),
-          ]);
-        },
+      this.opts.start,
+      this.opts.end,
+      async () => {
+        log.info('[schedule] Presence enabled');
+        await Promise.all([
+          this.saveOptions({
+            enabled: true,
+          }),
+          this.notify(
+            'Slack presence started',
+            'Starting to appear online on Slack at ' +
+              `${this.opts.slackUrl} from ${this.opts.start} to ${this.opts.end}.`,
+          ),
+        ]);
+      },
+      async () => {
+        log.info('[schedule] Presence disabled');
+        await Promise.all([
+          this.saveOptions({
+            enabled: false,
+          }),
+          this.notify('Slack presence stopped', 'Stopping to appear online on Slack.'),
+        ]);
+      },
     );
     log.info('SlackLoop status: ', this.status);
   }
@@ -87,7 +87,7 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
       log.info('Status is equal to previous status');
     } else {
       log.info(
-          'emitting SlackLoop status change: ' +
+        'emitting SlackLoop status change: ' +
           `${this.internalStatus.status} -> ${value.status}`,
       );
       this.internalStatus = value;
@@ -113,28 +113,28 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
             this.page = res.page;
           }
 
-          this.status = {status: 'activating'};
+          this.status = { status: 'activating' };
           const loaded = await loadSlack(this.page, this.opts.slackUrl);
           if (loaded === SlackLoadingResult.Loaded) {
             await this.activate(this.page);
           } else if (loaded === SlackLoadingResult.NotLoaded) {
-            await this.saveOptions({enabled: false});
+            await this.saveOptions({ enabled: false });
             await this.needsReLogin();
 
             await this.notify(
-                'Slack needs relogin',
-                'Slack presence failed to load your Slack workspace. ' +
+              'Slack needs relogin',
+              'Slack presence failed to load your Slack workspace. ' +
                 'Please open the app and re-login to Slack manually there.',
-                true,
+              true,
             );
             await this.waitForReLogin();
             break;
           } else if (loaded === SlackLoadingResult.Failed) {
-            await this.saveOptions({enabled: false});
+            await this.saveOptions({ enabled: false });
             await this.notify(
-                'Failed to load Slack',
-                'Slack presence failed to load your Slack workspace.',
-                true,
+              'Failed to load Slack',
+              'Slack presence failed to load your Slack workspace.',
+              true,
             );
             this.status = {
               status: 'failedToLoad',
@@ -152,7 +152,7 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
               startISOTime: this.schedule.nextStart()?.toISOString(),
             };
           else {
-            this.status = {status: 'inactive'};
+            this.status = { status: 'inactive' };
           }
         }
 
@@ -164,8 +164,8 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
       } catch (e) {
         log.error(e);
         await this.notify(
-            'Slack presence failed',
-            `Unexpected error occurred: ${(e as Error)?.message}. Exiting.`,
+          'Slack presence failed',
+          `Unexpected error occurred: ${(e as Error)?.message}. Exiting.`,
         );
         process.exit(1);
       }
@@ -173,7 +173,9 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
   }
 
   private async notify(title: string, message: string, screen = false) {
-    await pushoverNotify(title, message, () => this.page && screen ? takeScreenshot(this.page) : undefined);
+    await pushoverNotify(title, message, () =>
+      this.page && screen ? takeScreenshot(this.page) : undefined,
+    );
   }
 
   async saveOptions(newOptions: Partial<Options>) {
@@ -225,17 +227,17 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
   private async waitForReLogin() {
     log.info('Waiting for re-login or re-enable...');
     await waitForCondition(
-        async () => {
-          if (this.page) {
-            if (await isSlackLoaded(this.page, false, 500)) {
-              await this.saveOptions({enabled: true});
-              return true;
-            }
-            return this.opts.enabled;
-          } else return this.opts.enabled;
-        },
-        undefined,
-        500,
+      async () => {
+        if (this.page) {
+          if (await isSlackLoaded(this.page, false, 500)) {
+            await this.saveOptions({ enabled: true });
+            return true;
+          }
+          return this.opts.enabled;
+        } else return this.opts.enabled;
+      },
+      undefined,
+      500,
     );
   }
 

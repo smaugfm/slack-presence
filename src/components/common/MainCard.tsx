@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { Subtitle2 } from './typography';
 import { Card } from '@mui/material';
-import { PropsWithChildren } from 'react';
 import { WithCss } from './types';
 
 type Props = {

@@ -1,5 +1,5 @@
 import React from 'react';
-import "typeface-roboto";
+import 'typeface-roboto';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 

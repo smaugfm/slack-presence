@@ -1,46 +1,53 @@
-# Getting Started with Create React App
+# slack-presence
+Makes you appear _active_ on Slack, even when you are not😉
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Runs in a Docker container, so you can self-host it or host in the cloud.</br>
+Uses [Pushover](https://pushover.net/) notifications to alert you when you start & stop appearing online to your colleagues.
 
-## Available Scripts
+### Get started
 
-In the project directory, you can run:
+The recommended way is you use a Docker container, Dockerfile and docker-compose.yml and provided in the repo for you.
+You will need a Telegram bot token ([docs](https://core.telegram.org/bots#6-botfather)) and a chat id 
+of your Telegram account for the bot to communicate only with your ([how to find it](https://www.alphr.com/find-chat-id-telegram/)).
+1. Clone this repo (or download zip and unzip somewhere you like)
+2. Create and `.env` with your telegram chat id and your bot's token like this:
+  ```bash
+  MASTER_CHAT_ID=11111111;
+  BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+  ```
+3. Create a file named `options.json` with a [URL of your Slack workspace](https://slack.com/help/articles/221769328-Locate-your-Slack-URL):
+  ```json
+  {
+  "slackUrl": "https://example.slack.com"
+  }
+```
+4. Run `docker-compose up -d`
+5. Then message your bot `/start` command.
+6. For the first setup you will need to open `chrome://inspect` and connect to your remote headless Chrome and login to Slack manually.
 
-### `yarn start`
+Available bot commands:
+```
+/start - Start periodically reloading the Slack page so you can appear to be online
+/stop - Stop Slack page reloading
+/setschedule - Set desired timespan for you to appear online in Slack. 
+/clearschedule - Clear presence schedule and always appear online
+/screenshot - Make a screenshot of a current headless chrome state
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### How does it work
 
-### `yarn test`
+There are several approaches to make Slack beleive that you are active:
+1. Actually being active (too hard, boring)
+2. Always open Slack on a smartphone with sleep turned off (requires a separate smartphone)
+3. Mouse jiggler with a desktop app (unreliable, requires a dedicated PC)
+4. Slack API (no longer works)
+5. Third-party (usually paid and proprietary) services, like [this](https://presencescheduler.com/) one.
+6. Selenium (or simiar) tool to drive a Slack web browser tab.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `yarn build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+This tool uses approach #6 as the most reliable and consistent one. 
+It uses [Puppeteer](https://pptr.dev/) to start and drive a headless (with no UI but full-blown) Chrome 
+instance which logs in to Slack web at your provided URL and then frequently refreshes the page to make you appear active.
+As slack uses two-factor authentication and captcha you have to login to Slack web manually for the first time 
+but fortunately [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) allows you to remotely 
+connect to a headless Chrome and do all the work in a nice way.

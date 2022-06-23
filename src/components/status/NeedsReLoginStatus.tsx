@@ -34,7 +34,7 @@ export function NeedsReLoginStatus(props: Props) {
         <Body2>
           If you see a blank page you may have to enable third-party cookies. Click{' '}
           <Link
-            href='src/components/status/NeedsReLoginStatus#'
+            href='#'
             onClick={() => setThirdPartyGuide(true)}
           >
             here

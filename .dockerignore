@@ -3,6 +3,8 @@ build/
 chrome/
 npm-debug.log
 yarn-error.log
+README.md
+.prettierrc
 options.json
 Dockerfile
 docker-compose.yml

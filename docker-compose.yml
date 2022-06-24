@@ -2,10 +2,7 @@ version: '3'
 
 services:
   slack-presence:
-    build:
-      context: .
-      args:
-        - REACT_APP_WS_PORT=9333
+    image: marchukd/slack-presence
     restart: unless-stopped
     deploy:
       resources:

@@ -8,7 +8,6 @@ RUN apk add --no-cache \
       ca-certificates \
       ttf-freefont \
       nodejs \
-      yarn \
       dumb-init
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
@@ -24,20 +23,18 @@ USER pptruser
 
 WORKDIR /opt/app
 
-COPY package*.json yarn.lock ./
-RUN yarn install
+COPY ./dist .
 
-COPY . .
 ARG SERVER_PORT=9333
-ENV REACT_APP_WS_PORT=$SERVER_PORT
-RUN yarn build
 
+ENV REACT_APP_WS_PORT=$SERVER_PORT
 ENV PORT=$SERVER_PORT
 ENV HOST=0.0.0.0
 ENV CHROME_DEBUG_PORT=9222
 ENV TS_NODE_FILES=true
+
 EXPOSE $CHROME_DEBUG_PORT
 EXPOSE $PORT
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["yarn", "express"]
 
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "main.js"]

@@ -12,7 +12,7 @@ config();
     const result = await loadSlack(page, process.env.ONLY_CHROME_URL as string);
     if (!result) return;
     const screenshot = await takeScreenshot(page);
-    await pushoverNotify('test-title', 'Test message', screenshot);
+    await pushoverNotify('test-title', 'Test message', async () => screenshot);
 
     // const urls = await getAvatarUrls(page);
     // const name = await getName(page);

@@ -71,7 +71,7 @@ export function route<Body>(
 
 export async function writeOptions(path: string, options: Partial<Options>) {
   const res = JSON.stringify(options, null, 2);
-  await fs.promises.writeFile(path, res);
+  await fs.promises.writeFile(path, res, 'utf-8');
   log.info('Options saved: ', options);
 }
 
@@ -87,7 +87,7 @@ const defaultOptions: Options = {
 export function readOptions(path: string): Options {
   try {
     const options = JSON.parse(
-      fs.readFileSync(path).toString('utf-8'),
+      fs.readFileSync(path, 'utf-8')
     ) as Partial<Options>;
 
     log.info('Options read: ', options);

@@ -16,6 +16,6 @@ process.on('SIGINT', function () {
   gracefulShutdown().then(() => process.exit(0));
 });
 
-app.listen(port, host, async () => {
+app?.listen(port, host, async () => {
   await slackLoop.start();
 });

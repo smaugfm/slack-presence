@@ -21,9 +21,8 @@ RUN addgroup -S pptruser && adduser -S -g pptruser pptruser \
 # Run everything after as non-privileged user.
 USER pptruser
 
+COPY ./dist /opt/app
 WORKDIR /opt/app
-
-COPY ./dist .
 
 ARG SERVER_PORT=9333
 

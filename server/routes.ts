@@ -1,6 +1,7 @@
 import express from 'express';
 import expressWs from 'express-ws';
 import path from 'path';
+import fs from 'fs';
 import WebSocket from 'ws';
 import { SlackLoop } from './SlackLoop';
 import { Options } from '../src/common/common';
@@ -8,10 +9,23 @@ import { log, onWsMessage, route, wsSend } from './util';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 
+const frontPathCandidates = [['..', 'build'], ['build']];
+
 export function setupExpress(slackLoop: SlackLoop) {
   const app = expressWs(express().use(bodyParser.json())).app;
+
+  const frontPath = frontPathCandidates
+    .map(x => path.join(__dirname, ...x))
+    .find(fs.existsSync);
+
+  if (!frontPath) {
+    log.error('Could not find path to front');
+    process.exit(1);
+    return;
+  }
+
   app.use(morgan('dev'));
-  app.use(express.static(path.join(__dirname, '..', 'build')));
+  app.use(express.static(frontPath));
 
   let socket: WebSocket | undefined;
   app.ws('/api/socket', ws => {
@@ -39,8 +53,7 @@ export function setupExpress(slackLoop: SlackLoop) {
     });
 
     route(app, 'get', '/', async (req, res) => {
-      const p = path.join(__dirname, '..', 'build', 'index.html');
-      console.log('Serving /', p);
+      const p = path.join(frontPath, 'index.html');
       res.sendFile(p);
       res.end();
     });

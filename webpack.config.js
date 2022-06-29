@@ -1,6 +1,5 @@
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const nodeExternals = require('webpack-node-externals');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -11,7 +10,6 @@ const config = {
     path: path.resolve(__dirname, 'dist'),
   },
   target: 'node',
-  externals: [nodeExternals()],
   devtool: "source-map",
   plugins: [
     new CleanWebpackPlugin(),

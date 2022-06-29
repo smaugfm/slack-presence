@@ -14,6 +14,7 @@ services:
       - "9222:9222"
       - "9333:9333"
     environment:
+      - MAX_CONCURRENT_SESSIONS=10
       - PUSHOVER_USER_KEY=
       - PUSHOVER_API_TOKEN=
       - TZ=Europe/Kiev

@@ -1,17 +1,42 @@
 import React, { useState } from 'react';
 import { Column } from '../common/layout';
 import { Body1, Body2 } from '../common/typography';
-import { Box, Button, Link, Modal } from '@mui/material';
+import { Box, Link, Modal } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 import { css } from '@emotion/react';
 import { ThirdPartyCookiesGuide } from '../other/ThirdPartyCookiesGuide';
+import { useAsyncFn } from 'react-use';
 
 type Props = {
   devtoolsUrl?: string;
 };
 
-export function NeedsReLoginStatus(props: Props) {
+function changeHostnameToLocationHostname(url: string | undefined) {
+  if (!url) return undefined;
+
+  return url.replaceAll(new URL(url).hostname, window.location.hostname);
+}
+
+export function NeedsReLoginStatus({ devtoolsUrl }: Props) {
   const [iframeOpen, setIframeOpen] = useState(false);
   const [thirdPartyGuide, setThirdPartyGuide] = useState(false);
+
+  const [openClickState, openClick] = useAsyncFn(async () => {
+    const resp = await fetch('/api/devToolsUrl', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: changeHostnameToLocationHostname(devtoolsUrl),
+      }),
+    });
+    if (!resp.ok) return;
+    const resolvedUrl = await resp.text();
+    if (resolvedUrl) setIframeOpen(true);
+    return resolvedUrl;
+  }, []);
 
   return (
     <>
@@ -23,14 +48,16 @@ export function NeedsReLoginStatus(props: Props) {
           Click the button below to open Slack presence internal browser and then login to
           your Slack workspace. When you are done enable Slack presence again.
         </Body1>
-        <Button
+        <LoadingButton
+          loading={openClickState.loading}
+          disabled={!devtoolsUrl}
           sx={{ my: 2 }}
           fullWidth={false}
           variant='contained'
-          onClick={() => setIframeOpen(true)}
+          onClick={openClick}
         >
           Open browser
-        </Button>
+        </LoadingButton>
         <Body2>
           If you see a blank page you may have to enable third-party cookies. Click{' '}
           <Link href='#' onClick={() => setThirdPartyGuide(true)}>
@@ -60,7 +87,7 @@ export function NeedsReLoginStatus(props: Props) {
               width: 100%;
               height: 100%;
             `}
-            src={props.devtoolsUrl}
+            src={openClickState.value || ''}
           />
         </Box>
       </Modal>

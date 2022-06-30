@@ -1,10 +1,10 @@
-name: Push to DockerHub on every git push
+name: Push to DockerHub
 on: [ push ]
 env:
   DOCKER_USER: ${{secrets.DOCKER_USER}}
   DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
 jobs:
-  push-image-to-docker-hub:
+  push-to-docker-hub:
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.head_commit.message, '#dockerpush') }}
     steps:
@@ -21,10 +21,8 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
       - name: Install packages
         run: yarn install
-      - name: Build front
-        run: yarn run build-front
-      - name: Build back
-        run: yarn run build-back
+      - name: Code build
+        run: yarn run build
       - name: Docker build
         run: docker build . --file Dockerfile --tag $DOCKER_USER/${{ github.event.repository.name }}:${{ steps.date.outputs.date }}
       - name: Tag with latest

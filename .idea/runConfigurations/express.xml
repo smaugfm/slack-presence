@@ -6,7 +6,9 @@
       <script value="express" />
     </scripts>
     <node-interpreter value="project" />
-    <envs />
+    <envs>
+      <env name="TS_NODE_FILES" value="true" />
+    </envs>
     <method v="2" />
   </configuration>
 </component>

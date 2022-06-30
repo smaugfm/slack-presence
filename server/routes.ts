@@ -3,6 +3,8 @@ import expressWs from 'express-ws';
 import path from 'path';
 import fs from 'fs';
 import WebSocket from 'ws';
+import { promisify } from 'util';
+import { lookup } from 'dns';
 import { SlackLoop } from './SlackLoop';
 import { Options } from '../src/common/common';
 import { log, onWsMessage, route, wsSend } from './util';
@@ -10,6 +12,8 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 
 const frontPathCandidates = [['..', 'build'], ['build']];
+
+const lookupAsync = promisify(lookup);
 
 export function setupExpress(slackLoop: SlackLoop) {
   const app = expressWs(express().use(bodyParser.json())).app;
@@ -51,18 +55,26 @@ export function setupExpress(slackLoop: SlackLoop) {
         settings: slackLoop.options,
       });
     });
+  });
 
-    route(app, 'get', '/', async (req, res) => {
-      const p = path.join(frontPath, 'index.html');
-      res.sendFile(p);
-      res.end();
-    });
-    route<Partial<Options>>(app, 'patch', '/api/options', async (req, res) => {
-      log.info(`PATCH settings ${JSON.stringify(req.body)}`);
-      await slackLoop.saveOptions(req.body);
-      res.status(204);
-      res.end();
-    });
+  route(app, 'get', '/', async (req, res) => {
+    const p = path.join(frontPath, 'index.html');
+    res.sendFile(p);
+    res.end();
+  });
+  route<Partial<Options>>(app, 'patch', '/api/options', async (req, res) => {
+    log.info(`PATCH settings ${JSON.stringify(req.body)}`);
+    await slackLoop.saveOptions(req.body);
+    res.status(204);
+    res.end();
+  });
+  route<{ url: string }>(app, 'post', '/api/devToolsUrl', async (req, res) => {
+    log.info('Resolve DNS for ', req.body.url);
+    const url = new URL(req.body.url);
+    const { address } = await lookupAsync(url.hostname);
+    const resolvedUrl = req.body.url.replaceAll(url.hostname, address);
+    log.info('DNS resolved ', resolvedUrl);
+    res.send(resolvedUrl);
   });
 
   slackLoop.on('status', status => {

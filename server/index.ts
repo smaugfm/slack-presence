@@ -13,7 +13,9 @@ const app = setupExpress(slackLoop);
 console.log(`Listening on http://${host}:${port}...`);
 
 process.on('SIGINT', function () {
-  gracefulShutdown().then(() => process.exit(0));
+  gracefulShutdown()
+    .then(() => slackLoop.close())
+    .then(() => process.exit(0));
 });
 
 app?.listen(port, host, async () => {

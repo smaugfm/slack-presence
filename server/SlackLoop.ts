@@ -82,25 +82,29 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
     return this.internalStatus;
   }
 
-  private set status(value: SlackStatus) {
-    if (isEqual(value, this.internalStatus)) {
-      log.info('Status is equal to previous status');
-    } else {
-      log.info(
-        'emitting SlackLoop status change: ' +
-          `${this.internalStatus.status} -> ${value.status}`,
-      );
-      this.internalStatus = value;
-      this.emit('status', value);
-    }
-  }
-
   async start() {
     const res = await createBrowser(this.opts.userDataDir, chromeDebugPort);
     this.browser = res.browser;
     this.page = res.page;
 
     this.presenceLoop();
+  }
+
+  close() {
+    return this.browser?.close();
+  }
+
+  private set status(value: SlackStatus) {
+    if (isEqual(value, this.internalStatus)) {
+      log.info('Status is equal to previous status');
+    } else {
+      log.info(
+          'emitting SlackLoop status change: ' +
+          `${this.internalStatus.status} -> ${value.status}`,
+      );
+      this.internalStatus = value;
+      this.emit('status', value);
+    }
   }
 
   private presenceLoop() {
@@ -242,9 +246,6 @@ export class SlackLoop extends (EventEmitter as new () => TypedEmitter<SlackLoop
   }
 
   private async needsReLogin() {
-    // TODO: show screenshot
-    // const screenShot = await takeScreenshot(this.page);
-
     const chromeUrl = `http://${host}:${chromeDebugPort}`;
     const result = await axios.get(`${chromeUrl}/json`);
     let devtoolsFrontendUrl = result?.data?.[0]?.devtoolsFrontendUrl;

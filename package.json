@@ -56,6 +56,7 @@
     "express": "^4.18.1",
     "express-ws": "^5.0.2",
     "husky": "^8.0.1",
+    "is-ip": "^4.0.0",
     "lint-staged": "^13.0.3",
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",

@@ -68,14 +68,6 @@ export function setupExpress(slackLoop: SlackLoop) {
     res.status(204);
     res.end();
   });
-  route<{ url: string }>(app, 'post', '/api/devToolsUrl', async (req, res) => {
-    log.info('Resolve DNS for ', req.body.url);
-    const url = new URL(req.body.url);
-    const { address } = await lookupAsync(url.hostname);
-    const resolvedUrl = req.body.url.replaceAll(url.hostname, address);
-    log.info('DNS resolved ', resolvedUrl);
-    res.send(resolvedUrl);
-  });
 
   slackLoop.on('status', status => {
     if (socket) log.info(`[ws] sending status ${JSON.stringify(status)}`);

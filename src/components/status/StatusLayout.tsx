@@ -3,13 +3,13 @@ import { MainCard } from '../common/MainCard';
 import { ActiveStatus } from './ActiveStatus';
 import { NeedsReLoginStatus } from './NeedsReLoginStatus';
 import { OutOfScheduleStatus } from './OutOfScheduleStatus';
-import { SlackStatus } from '../../common/common';
+import { PresenceStatus } from '../../common/common';
 import { InactiveStatus } from './InactiveStatus';
-import { ActivatingStatus } from './ActivatingStatus';
+import { LoadingStatus } from './LoadingStatus';
 import { FailedToLoadStatus } from './FailedToLoadStatus';
 
 type Props = {
-  status: SlackStatus;
+  status: PresenceStatus;
 };
 
 export function StatusLayout({ status }: Props) {
@@ -22,8 +22,8 @@ export function StatusLayout({ status }: Props) {
           avatarUrl2x={status.avatarUrl2x}
           endTime={status.endISOTime ? new Date(status.endISOTime) : undefined}
         />
-      ) : status.status === 'activating' ? (
-        <ActivatingStatus />
+      ) : status.status === 'loading' ? (
+        <LoadingStatus />
       ) : status.status === 'needsReLogin' ? (
         <NeedsReLoginStatus devtoolsUrl={status.devtoolsFrontendUrl} />
       ) : status.status === 'outOfSchedule' ? (

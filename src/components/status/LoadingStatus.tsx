@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
 
-export function ActivatingStatus() {
+export function LoadingStatus() {
   return <Box>Loading Slack...</Box>;
 }

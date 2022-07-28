@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import {
   Settings,
-  SlackStatus,
+  PresenceStatus,
   WsClientMessage,
   WsServerMessage,
 } from '../common/common';
@@ -16,7 +16,7 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { isEqual } from 'lodash';
 
 type ServerContextProps = {
-  status?: SlackStatus;
+  status?: PresenceStatus;
   settings?: Settings;
 };
 

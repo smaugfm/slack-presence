@@ -13,7 +13,7 @@ export type Options = {
 export type WsServerMessage =
   | {
       type: 'status';
-      status: SlackStatus;
+      status: PresenceStatus;
     }
   | {
       type: 'settings';
@@ -85,12 +85,12 @@ export async function waitForCondition(
   return !isTimeout;
 }
 
-export type SlackStatus =
+export type PresenceStatus =
   | {
       status: 'inactive';
     }
   | {
-      status: 'activating';
+      status: 'loading';
     }
   | {
       status: 'active';

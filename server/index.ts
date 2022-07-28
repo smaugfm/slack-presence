@@ -1,4 +1,4 @@
-import { SlackLoop } from './SlackLoop';
+import { PresenceLoop } from './presence/PresenceLoop';
 import { gracefulShutdown } from 'node-schedule';
 import { setupExpress } from './routes';
 import { host, port } from './util';
@@ -6,7 +6,7 @@ import { config } from 'dotenv';
 
 config();
 
-const slackLoop = new SlackLoop();
+const slackLoop = new PresenceLoop();
 
 const app = setupExpress(slackLoop);
 

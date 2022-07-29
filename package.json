@@ -5,7 +5,6 @@
   "proxy": "http://localhost:9333",
   "scripts": {
     "express": "node -r ts-node/register server/index.ts --project tsconfig.json",
-    "chrome": "node -r ts-node/register server/only-chrome.ts --project tsconfig.json",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build && webpack",
     "run-built": "node dist/main.js",

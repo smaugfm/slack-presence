@@ -4,29 +4,10 @@ import puppeteer, {
   LaunchOptions,
   Page,
 } from 'puppeteer';
-import { log } from './util';
+import { log } from './misc';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-const topNavSelector = 'body > div.p-client_container > div.p-client > div.p-top_nav';
-const statusSelector =
-  'body > ' +
-  'div.p-client_container > ' +
-  'div > ' +
-  'div.p-top_nav > ' +
-  'div.p-top_nav__right > ' +
-  'button.p-ia__nav__user__button > ' +
-  'div > ' +
-  'i.c-icon.p-ia__nav__user__presence';
-
-const avatarSelector =
-  'body > div.p-client_container > div > ' +
-  'div.p-top_nav > div.p-top_nav__right > ' +
-  'button > div > span > span > img';
-
-const nameSelector =
-  'body > div.ReactModalPortal > div > div > div > div > div > div > ' +
-  'div:nth-child(1) > div > div.p-ia__main_menu__user__details > div > span';
 
 export async function createBrowser(
   userDataDir: string,
@@ -72,33 +53,6 @@ async function ensureUserDir(userDataDir: string) {
   }
 }
 
-export async function getAvatarUrls(page: Page) {
-  if (!(await waitForSelector(page, avatarSelector, 'avatar URLs'))) return [];
-  const results: string[] = (await page.$eval(avatarSelector, (el: any) => {
-    return [el.getAttribute('src'), el.getAttribute('srcset')];
-  })) as any;
-  const url = results[0];
-  const url2x = results[1].split(/\s/)[0];
-  log.info('Got avatar URLs: ', url, url2x);
-  return [url, url2x];
-}
-
-export async function getName(page: Page) {
-  if (await waitForSelector(page, nameSelector)) {
-    return await page.$eval(nameSelector, (el: any) => el.innertHTML as string);
-  } else {
-    if (!(await waitForSelector(page, avatarSelector))) {
-      return '';
-    }
-    log.info('Clicking on avatar');
-    await page.$eval(avatarSelector, (el: any) => el.click());
-    if (!(await waitForSelector(page, nameSelector, 'user name'))) {
-      return '';
-    }
-    return await page.$eval(nameSelector, (el: any) => el.innerHTML as string);
-  }
-}
-
 export async function waitForSelector(page: Page, selector: string, name?: string) {
   try {
     await page.waitForSelector(selector, { timeout: 2000 });
@@ -107,48 +61,6 @@ export async function waitForSelector(page: Page, selector: string, name?: strin
     if (name) log.error(`Failed to get ${name}. `, e);
     return false;
   }
-}
-
-export async function isSlackLoaded(
-  page: Page,
-  logging: boolean,
-  timeout: number,
-): Promise<boolean> {
-  try {
-    await page.waitForSelector(topNavSelector, { timeout });
-    await page.waitForSelector(statusSelector, { timeout });
-    if (logging) log.info('Waiting for Active status...');
-    await page.waitForFunction(getIsActiveFunc(), { polling: 100, timeout });
-    if (logging) log.info('Done. Slack has been fully loaded.');
-    return true;
-  } catch (e) {
-    if (logging) log.info('Slack failed to load. ', (e as any)?.message);
-    return false;
-  }
-}
-
-export enum SlackLoadingResult {
-  Loaded = 'Loaded',
-  NotLoaded = 'NotLoaded',
-  Failed = 'Failed',
-}
-
-export async function loadSlack(page: Page, url: string): Promise<SlackLoadingResult> {
-  log.info('Waiting for Slack to load...');
-  try {
-    await page.goto(url);
-  } catch (e) {
-    log.error(e);
-    return SlackLoadingResult.Failed;
-  }
-  const result = await isSlackLoaded(page, true, 10000);
-  return result ? SlackLoadingResult.Loaded : SlackLoadingResult.NotLoaded;
-}
-
-function getIsActiveFunc() {
-  return `
-    !!document.querySelector("${statusSelector}")?.title?.toLowerCase()?.includes("active")
-  `;
 }
 
 // This is where we'll put the code to get around the tests.

@@ -3,19 +3,15 @@ import expressWs from 'express-ws';
 import path from 'path';
 import fs from 'fs';
 import WebSocket from 'ws';
-import { promisify } from 'util';
-import { lookup } from 'dns';
-import { PresenceLoop } from './presence/PresenceLoop';
-import { Options } from '../src/common/common';
-import { log, onWsMessage, route, wsSend } from './util';
+import { PresenceLoop } from '../presence/PresenceLoop';
+import { Options } from '../../src/common/common';
+import { log, onWsMessage, route, wsSend } from './misc';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 
-const frontPathCandidates = [['..', 'build'], ['build']];
+const frontPathCandidates = [['..', '..', 'build'], ['build']];
 
-const lookupAsync = promisify(lookup);
-
-export function setupExpress(slackLoop: PresenceLoop) {
+export function setupExpress(loop: PresenceLoop) {
   const app = expressWs(express().use(bodyParser.json())).app;
 
   const frontPath = frontPathCandidates
@@ -44,15 +40,15 @@ export function setupExpress(slackLoop: PresenceLoop) {
       log.info(`[ws] received '${msg}'`);
     });
     onWsMessage(ws, 'initial', () => {
-      log.info(`[ws] sending status ${JSON.stringify(slackLoop.status)}`);
+      log.info(`[ws] sending status ${JSON.stringify(loop.getStatus())}`);
       wsSend(ws, {
         type: 'status',
-        status: slackLoop.status,
+        status: loop.getStatus(),
       });
-      log.info(`[ws] sending settings ${JSON.stringify(slackLoop.options)}`);
+      log.info(`[ws] sending settings ${JSON.stringify(loop.getOptions())}`);
       wsSend(ws, {
         type: 'settings',
-        settings: slackLoop.options,
+        settings: loop.getOptions(),
       });
     });
   });
@@ -64,19 +60,19 @@ export function setupExpress(slackLoop: PresenceLoop) {
   });
   route<Partial<Options>>(app, 'patch', '/api/options', async (req, res) => {
     log.info(`PATCH settings ${JSON.stringify(req.body)}`);
-    await slackLoop.saveOptionsAndChangeState(req.body);
+    await loop.saveOptionsAndChangeState(req.body);
     res.status(204);
     res.end();
   });
 
-  slackLoop.on('status', status => {
+  loop.on('status', status => {
     if (socket) log.info(`[ws] sending status ${JSON.stringify(status)}`);
     wsSend(socket, {
       type: 'status',
       status,
     });
   });
-  slackLoop.on('options', options => {
+  loop.on('options', options => {
     if (socket) log.info(`[ws] sending settings ${JSON.stringify(options)}`);
     wsSend(socket, {
       type: 'settings',

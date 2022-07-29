@@ -1,20 +1,4 @@
-import {
-  chromeDebugPort,
-  host,
-  log,
-  readOptions,
-  takeScreenshot,
-  writeOptions,
-} from '../util';
-import { Browser, Page } from 'puppeteer';
-import {
-  createBrowser,
-  getAvatarUrls,
-  getName,
-  isSlackLoaded,
-  loadSlack,
-  SlackLoadingResult,
-} from '../browser';
+import { chromeDebugPort, host, log, writeOptions } from '../util/misc';
 import prettyMilliseconds from 'pretty-ms';
 import { Options, PresenceStatus, waitForCondition } from '../../src/common/common';
 import EventEmitter from 'events';
@@ -22,7 +6,8 @@ import TypedEmitter from 'typed-emitter';
 import { Schedule } from './Schedule';
 import { isEqual } from 'lodash';
 import axios from 'axios';
-import { pushoverNotify } from '../pushover';
+import { pushoverNotify } from '../util/pushover';
+import { PresenceService } from './types';
 
 type PresenceLoopEvents = {
   status: (status: PresenceStatus) => void;
@@ -30,79 +15,74 @@ type PresenceLoopEvents = {
 };
 
 export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<PresenceLoopEvents>) {
-  private browser: Browser | undefined;
-  private page: Page | undefined;
+  private readonly presenceService: PresenceService;
   private readonly schedule: Schedule;
-  private opts: Options;
-  private internalStatus: PresenceStatus = { status: 'inactive' };
+  private options: Options;
+  private readonly status: PresenceStatus = { status: 'inactive' };
 
-  constructor() {
+  constructor(service: PresenceService, options: Options) {
     super();
-    this.opts = readOptions('options.json');
-    if (!this.opts.start || !this.opts.end) {
-      throw new Error('Invalid options.json: mandatory date is missing.');
-    }
+    this.presenceService = service;
+    this.options = options;
     this.schedule = this.createSchedule();
-    log.info('SlackLoop status: ', this.status);
+    log.info('PresenceLoop status: ', this.status);
   }
 
-  public get options() {
-    return this.opts;
+  public getOptions() {
+    return this.options;
   }
 
-  public get status() {
-    return this.internalStatus;
+  public getStatus() {
+    return this.status;
   }
 
   async start() {
-    const res = await createBrowser(this.opts.userDataDir, chromeDebugPort);
-    this.browser = res.browser;
-    this.page = res.page;
+    await this.presenceService.init();
 
     this.mainLoop();
   }
 
   close() {
-    return this.browser?.close();
+    return this.presenceService.close();
   }
 
   async saveOptionsAndChangeState(newOptions: Partial<Options>) {
-    const prevOpts = this.opts;
-    this.opts = {
-      ...this.opts,
+    const prevOpts = this.options;
+    this.options = {
+      ...this.options,
       ...newOptions,
     };
 
-    if (isEqual(prevOpts, this.opts)) {
+    if (isEqual(prevOpts, this.options)) {
       log.info('Nothing to do, new options are equal to prev options.');
-      return this.opts;
+      return this.options;
     }
 
-    if (this.opts.start !== prevOpts.start || this.opts.end !== prevOpts.end) {
-      if (this.schedule.reschedule(this.opts.start, this.opts.end)) {
+    if (this.options.start !== prevOpts.start || this.options.end !== prevOpts.end) {
+      if (this.schedule.reschedule(this.options.start, this.options.end)) {
         if (this.status.status === 'outOfSchedule') {
-          this.status = {
+          this.updateStatus({
             status: 'outOfSchedule',
             startISOTime: this.schedule.nextStart()?.toISOString(),
-          };
+          });
         } else if (this.status.status === 'active') {
-          this.status = {
+          this.updateStatus({
             ...this.status,
             endISOTime: this.schedule.nextEnd()?.toISOString(),
-          };
+          });
         }
       }
     }
 
-    await writeOptions('options.json', this.opts);
-    if (!this.opts.enabled) log.info('Loop stopped...');
-    this.emit('options', this.opts);
+    await writeOptions('options.json', this.options);
+    if (!this.options.enabled) log.info('Loop stopped...');
+    this.emit('options', this.options);
   }
 
   private createSchedule() {
     return new Schedule(
-      this.opts.start,
-      this.opts.end,
+      this.options.start,
+      this.options.end,
       async () => {
         log.info('[schedule] Presence enabled');
         await Promise.all([
@@ -110,7 +90,7 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
           this.notify(
             'Slack presence started',
             'Starting to appear online on Slack at ' +
-              `${this.opts.slackUrl} from ${this.opts.start} to ${this.opts.end}.`,
+              `${this.options.slackUrl} from ${this.options.start} to ${this.options.end}.`,
           ),
         ]);
       },
@@ -135,41 +115,39 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
   private mainLoop() {
     setTimeout(async () => {
       try {
-        while (this.opts?.enabled) {
-          if (!this.browser || !this.page) {
-            const res = await createBrowser(this.opts.userDataDir, chromeDebugPort);
-            this.browser = res.browser;
-            this.page = res.page;
-          }
-
-          this.status = { status: 'loading' };
-          const loadedResult = await loadSlack(this.page, this.opts.slackUrl);
-          if (loadedResult === SlackLoadingResult.Loaded) {
-            await this.startLoop(this.page);
-          } else if (loadedResult === SlackLoadingResult.NotLoaded) {
-            await this.reactWithNeedsReLogin();
-            break;
-          } else if (loadedResult === SlackLoadingResult.Failed) {
+        while (this.options?.enabled) {
+          this.updateStatus({ status: 'loading' });
+          if (!(await this.presenceService.load(this.options.slackUrl))) {
             await this.reactWithFailed();
             break;
           }
-          const interval = this.opts.intervalMinutes * 1000 * 60;
+          if (!(await this.presenceService.waitLoaded())) {
+            await this.reactWithNeedsReLogin();
+            break;
+          }
+          if (!(await this.presenceService.waitActive())) {
+            await this.reactWithNeedsReLogin();
+            break;
+          }
+
+          await this.startLoop();
+          const interval = this.options.intervalMinutes * 1000 * 60;
           log.info(`Waiting for ${prettyMilliseconds(interval)}...`);
-          await waitForCondition(() => !this.opts.enabled, interval);
+          await waitForCondition(() => !this.options.enabled, interval);
         }
         if (this.status.status === 'inactive' || this.status.status === 'active') {
-          if (this.opts.start)
-            this.status = {
+          if (this.options.start)
+            this.updateStatus({
               status: 'outOfSchedule',
               startISOTime: this.schedule.nextStart()?.toISOString(),
-            };
+            });
           else {
-            this.status = { status: 'inactive' };
+            this.updateStatus({ status: 'inactive' });
           }
         }
 
         // waiting for loop to re-enable
-        await waitForCondition(() => this.opts?.enabled, undefined, 1000);
+        await waitForCondition(() => this.options?.enabled, undefined, 1000);
 
         log.info('Loop starting...');
         this.mainLoop();
@@ -191,14 +169,14 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
       'Slack presence failed to load your Slack workspace.',
       true,
     );
-    this.status = {
+    this.updateStatus({
       status: 'failedToLoad',
-    };
+    });
   }
 
   private async reactWithNeedsReLogin() {
     await this.disableLoop();
-    await this.needsReLogin();
+    await this.statusNeedsReLogin();
 
     await this.notify(
       'Slack needs re-login',
@@ -209,65 +187,65 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
     await this.waitForReLogin();
   }
 
-  private set status(value: PresenceStatus) {
-    if (isEqual(value, this.internalStatus)) {
+  private updateStatus(value: PresenceStatus) {
+    if (isEqual(value, this.status)) {
       log.info('Status is equal to previous status');
     } else {
       log.info(
-        'emitting SlackLoop status change: ' +
-          `${this.internalStatus.status} -> ${value.status}`,
+        `Emitting PresenceLoop status change: ${this.status.status} -> ${value.status}`,
       );
-      this.internalStatus = value;
+      (this as any).status = value;
       this.emit('status', value);
     }
   }
 
   private async notify(title: string, message: string, screen = false) {
-    await pushoverNotify(title, message, () =>
-      this.page && screen ? takeScreenshot(this.page) : undefined,
+    await pushoverNotify(
+      title,
+      message,
+      screen ? () => this.presenceService.getScreenshot() : undefined,
     );
   }
 
-  private async startLoop(page: Page) {
+  private async startLoop() {
     log.info('Loop started.');
-    const urls = await getAvatarUrls(page);
-    const name = await getName(page);
-    this.status = {
+    const { avatarUrls, userName } = await this.presenceService.getActiveData();
+    this.updateStatus({
       status: 'active',
-      avatarUrl: urls[0],
-      avatarUrl2x: urls[1],
-      name,
+      avatarUrl: avatarUrls[0],
+      avatarUrl2x: avatarUrls[1],
+      name: userName,
       endISOTime: this.schedule.nextEnd()?.toISOString(),
-    };
+    });
   }
 
   private async waitForReLogin() {
     log.info('Waiting for re-login or re-enable...');
     await waitForCondition(
       async () => {
-        if (this.page) {
-          if (await isSlackLoaded(this.page, false, 2000)) {
-            await this.enableLoop();
-            return true;
-          }
-          return this.opts.enabled;
-        } else return this.opts.enabled;
+        const loaded = await this.presenceService.waitLoaded(1000);
+        const active = loaded && (await this.presenceService.waitActive(1000));
+        if (loaded && active) {
+          await this.enableLoop();
+          return true;
+        }
+        return this.options.enabled;
       },
       undefined,
       500,
     );
   }
 
-  private async needsReLogin() {
+  private async statusNeedsReLogin() {
     const chromeUrl = `http://${host}:${chromeDebugPort}`;
     const result = await axios.get(`${chromeUrl}/json`);
     let devtoolsFrontendUrl = result?.data?.[0]?.devtoolsFrontendUrl;
     log.info('DevTools URL: ' + devtoolsFrontendUrl);
     if (devtoolsFrontendUrl) devtoolsFrontendUrl = `${chromeUrl}${devtoolsFrontendUrl}`;
 
-    this.status = {
+    this.updateStatus({
       status: 'needsReLogin',
       devtoolsFrontendUrl,
-    };
+    });
   }
 }

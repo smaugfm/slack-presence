@@ -3,7 +3,7 @@ import { Application, IRouter, Request, Response } from 'express';
 import WebSocket from 'ws';
 import { Page } from 'puppeteer';
 import fs from 'fs';
-import { Options, WsClientMessage, WsServerMessage } from '../src/common/common';
+import { Options, WsClientMessage, WsServerMessage } from '../../src/common/common';
 
 export const log = createSimpleLogger();
 export const chromeDebugPort = parseInt(process.env.CHROME_DEBUG_PORT || '9222');
@@ -84,11 +84,16 @@ const defaultOptions: Options = {
   end: '18:00',
 };
 
+export async function measure<T>(fn: () => Promise<T>): Promise<[T, number]> {
+  const start = performance.now();
+  const result = await fn();
+
+  return [result, performance.now() - start];
+}
+
 export function readOptions(path: string): Options {
   try {
-    const options = JSON.parse(
-      fs.readFileSync(path, 'utf-8')
-    ) as Partial<Options>;
+    const options = JSON.parse(fs.readFileSync(path, 'utf-8')) as Partial<Options>;
 
     log.info('Options read: ', options);
     const result = {

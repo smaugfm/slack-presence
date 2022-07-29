@@ -1,6 +1,6 @@
 import axios from 'axios';
 import FormData from 'form-data';
-import { log } from './util';
+import { log } from './misc';
 
 export async function pushoverNotify(
   title: string,

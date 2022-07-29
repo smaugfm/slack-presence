@@ -1,23 +1,33 @@
 import { PresenceLoop } from './presence/PresenceLoop';
 import { gracefulShutdown } from 'node-schedule';
-import { setupExpress } from './routes';
-import { host, port } from './util';
+import { setupExpress } from './util/express';
+import { chromeDebugPort, host, port, readOptions } from './util/misc';
 import { config } from 'dotenv';
+import { SlackService } from './presence/service/SlackService';
+import { LoggingWrapper } from './presence/service/LoggingWrapper';
 
 config();
 
-const slackLoop = new PresenceLoop();
+const options = readOptions('options.json');
 
-const app = setupExpress(slackLoop);
+const slackService = new LoggingWrapper(
+  new SlackService(options.userDataDir, chromeDebugPort, {
+    waitLoad: 10_000,
+    waitActive: 10_000,
+  }),
+);
+const presenceLoop = new PresenceLoop(slackService, options);
+
+const app = setupExpress(presenceLoop);
 
 console.log(`Listening on http://${host}:${port}...`);
 
 process.on('SIGINT', function () {
   gracefulShutdown()
-    .then(() => slackLoop.close())
+    .then(() => presenceLoop.close())
     .then(() => process.exit(0));
 });
 
 app?.listen(port, host, async () => {
-  await slackLoop.start();
+  await presenceLoop.start();
 });

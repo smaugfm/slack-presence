@@ -2,7 +2,7 @@ import { PresenceService } from '../types';
 import { log, measure } from '../../util/misc';
 import prettyMilliseconds from "pretty-ms";
 
-export class LoggingWrapper<T> implements PresenceService<T> {
+export class ServiceLogWrapper<T> implements PresenceService<T> {
   private inner: PresenceService<T>;
 
   constructor(inner: PresenceService<T>) {

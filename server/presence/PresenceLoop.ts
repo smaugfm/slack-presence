@@ -6,8 +6,8 @@ import TypedEmitter from 'typed-emitter';
 import { Schedule } from './Schedule';
 import { isEqual } from 'lodash';
 import axios from 'axios';
-import { pushoverNotify } from '../util/pushover';
-import { PresenceService } from './types';
+import { Notifier, PresenceService } from './types';
+import { PushoverNotifier } from './notifier/PushoverNotifier';
 
 type PresenceLoopEvents = {
   status: (status: PresenceStatus) => void;
@@ -18,6 +18,9 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
   private readonly presenceService: PresenceService;
   private readonly schedule: Schedule;
   private options: Options;
+  private notifiers: Notifier[] = [new PushoverNotifier().createNotifier()].filter(
+    x => x,
+  ) as Notifier[];
   private readonly status: PresenceStatus = { status: 'inactive' };
 
   constructor(service: PresenceService, options: Options) {
@@ -200,10 +203,10 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
   }
 
   private async notify(title: string, message: string, screen = false) {
-    await pushoverNotify(
-      title,
-      message,
-      screen ? () => this.presenceService.getScreenshot() : undefined,
+    // noinspection ES6MissingAwait
+    const imagePromise = screen ? this.presenceService.getScreenshot() : undefined;
+    await Promise.all(
+      this.notifiers.map(notifier => notifier.notify(title, message, imagePromise)),
     );
   }
 

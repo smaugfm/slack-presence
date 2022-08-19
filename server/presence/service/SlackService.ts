@@ -1,7 +1,7 @@
-import {PresenceService, PresenceServiceTimeouts, UserActiveData} from '../types';
+import { PresenceService, PresenceServiceTimeouts, UserActiveData } from '../types';
 import { Browser, Page } from 'puppeteer';
 import { createBrowser, waitForSelector } from '../../util/browser';
-import {log, takeScreenshot} from '../../util/misc';
+import { log, takeScreenshot } from '../../util/misc';
 
 export class SlackService implements PresenceService {
   private browser: Browser | undefined;
@@ -10,14 +10,18 @@ export class SlackService implements PresenceService {
   private readonly chromeDebugPort: number;
   private readonly timeouts: PresenceServiceTimeouts;
 
-  constructor(useDataDir: string, chromeDebugPort: number, defaultTimeouts: PresenceServiceTimeouts) {
+  constructor(
+    useDataDir: string,
+    chromeDebugPort: number,
+    defaultTimeouts: PresenceServiceTimeouts,
+  ) {
     this.userDataDir = useDataDir;
     this.chromeDebugPort = chromeDebugPort;
     this.timeouts = defaultTimeouts;
   }
 
   get name(): string {
-    return "Slack";
+    return 'Slack';
   }
 
   async init(): Promise<void> {
@@ -27,8 +31,7 @@ export class SlackService implements PresenceService {
   }
 
   async load(url: string): Promise<boolean> {
-    if (!this.browser || !this.page)
-      this.throwNotInitialized();
+    if (!this.browser || !this.page) this.throwNotInitialized();
 
     try {
       await this.page.goto(url);
@@ -40,22 +43,19 @@ export class SlackService implements PresenceService {
   }
 
   async waitLoaded(timeout?: number): Promise<boolean> {
-    if (!this.browser || !this.page)
-      this.throwNotInitialized();
+    if (!this.browser || !this.page) this.throwNotInitialized();
 
     return this.isSlackLoaded(this.page, timeout ?? this.timeouts.waitLoad);
   }
 
   async waitActive(timeout?: number): Promise<boolean> {
-    if (!this.browser || !this.page)
-      this.throwNotInitialized();
+    if (!this.browser || !this.page) this.throwNotInitialized();
 
     return this.isSlackActive(this.page, timeout ?? this.timeouts.waitActive);
   }
 
   async getActiveData(): Promise<UserActiveData> {
-    if (!this.browser || !this.page)
-      this.throwNotInitialized();
+    if (!this.browser || !this.page) this.throwNotInitialized();
 
     return {
       avatarUrls: await this.getAvatarUrls(this.page),
@@ -64,8 +64,7 @@ export class SlackService implements PresenceService {
   }
 
   getScreenshot(): Promise<Buffer> {
-    if (!this.browser || !this.page)
-      this.throwNotInitialized();
+    if (!this.browser || !this.page) this.throwNotInitialized();
 
     return takeScreenshot(this.page);
   }
@@ -132,20 +131,11 @@ export class SlackService implements PresenceService {
   }
 }
 
-const topNavSelector = 'body > div.p-client_container > div.p-client > div.p-top_nav';
+const topNavSelector = 'body > div.p-client_container > div > div.p-top_nav';
 const statusSelector =
-  'body > ' +
-  'div.p-client_container > ' +
-  'div > ' +
-  'div.p-top_nav > ' +
-  'div.p-top_nav__right > ' +
-  'button.p-ia__nav__user__button > ' +
-  'div > ' +
-  'i.c-icon.p-ia__nav__user__presence';
-const avatarSelector =
-  'body > div.p-client_container > div > ' +
-  'div.p-top_nav > div.p-top_nav__right > ' +
-  'button > div > span > span > img';
+  '#c-coachmark-anchor > button > div > ' +
+  'i.c-icon.p-ia__nav__user__presence.c-presence.c-presence--active.c-icon--presence-online';
+const avatarSelector = '#c-coachmark-anchor > button > div > span > span > img';
 const nameSelector =
   'body > div.ReactModalPortal > div > div > div > div > div > div > ' +
   'div:nth-child(1) > div > div.p-ia__main_menu__user__details > div > span';

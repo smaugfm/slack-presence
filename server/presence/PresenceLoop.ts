@@ -179,7 +179,7 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
     await this.statusNeedsReLogin();
 
     await this.notify(
-      'Slack needs re-login',
+      'Re-login to Slack',
       'Slack presence failed to load your Slack workspace. ' +
         'Please open the app and re-login to Slack manually there.',
       true,
@@ -233,6 +233,12 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
       },
       undefined,
       500,
+    );
+
+    await this.notify(
+      'Logged in to Slack',
+      'Slack presence has managed to login to Slack back again.',
+      true,
     );
   }
 

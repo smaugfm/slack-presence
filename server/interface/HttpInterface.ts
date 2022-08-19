@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import WebSocket from 'ws';
 import { Options } from '../../src/common/common';
-import { host, log, onWsMessage, port, route, wsSend } from '../util/misc';
+import { log, onWsMessage, route, wsSend } from '../util/misc';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import {
@@ -15,7 +15,15 @@ import {
 
 const frontPathCandidates = [['..', '..', 'build'], ['build']];
 
-export const HttpInterfaceFactory: LoopControlerInterfaceFactory = {
+export class HttpInterfaceFactory implements LoopControlerInterfaceFactory {
+  private host: string;
+  private port: number;
+
+  constructor(host: string, port: number) {
+    this.host = host;
+    this.port = port;
+  }
+
   create(loop: PresenceLoop): LoopControlInterface | undefined {
     const app = expressWs(express().use(bodyParser.json())).app;
 
@@ -85,15 +93,16 @@ export const HttpInterfaceFactory: LoopControlerInterfaceFactory = {
       });
     });
 
+    const that = this;
     return {
       start() {
         return new Promise(resolve => {
-          app.listen(port, host, () => {
-            console.log(`Listening on http://${host}:${port}...`);
+          app.listen(that.port, that.host, () => {
+            console.log(`Listening on http://${that.host}:${that.port}...`);
             resolve();
           });
         });
       },
     };
-  },
-};
+  }
+}

@@ -1,14 +1,19 @@
 import { PresenceLoopImpl } from './loop/PresenceLoopImpl';
 import { gracefulShutdown } from 'node-schedule';
 import { HttpInterfaceFactory } from './interface/HttpInterface';
-import { chromeDebugPort, readOptions } from './util/misc';
+import { readOptions } from './util/misc';
 import { config as dotEnvConfig } from 'dotenv';
 import { SlackService } from './service/SlackService';
 import { ServiceLogWrapper } from './service/ServiceLogWrapper';
 import { PushoverNotifierFactory } from './notifier/PushoverNotifier';
 import { Notifier } from './types';
+import { DevToolsService } from './relogin/DevToolsService';
 
 dotEnvConfig();
+
+const chromeDebugPort = parseInt(process.env.CHROME_DEBUG_PORT || '9222');
+const httpServerHost = process.env.HTTP_SERVER_HOST || 'localhost';
+const httpServerPort = parseInt(process.env.HTTP_SERVER_PORT || '9333');
 
 const options = readOptions('options.json');
 
@@ -23,9 +28,18 @@ const notifiers: Notifier[] = [PushoverNotifierFactory.createNotifier()].filter(
   x => !!x,
 ) as Notifier[];
 
-const presenceLoop = new PresenceLoopImpl(slackService, notifiers, options);
+const devToolsService = new DevToolsService(httpServerHost, chromeDebugPort);
 
-const httpInterface = HttpInterfaceFactory.create(presenceLoop);
+const presenceLoop = new PresenceLoopImpl(
+  slackService,
+  notifiers,
+  devToolsService,
+  options,
+);
+
+const httpInterface = new HttpInterfaceFactory(httpServerHost, httpServerPort).create(
+  presenceLoop,
+);
 
 process.on('SIGINT', function () {
   gracefulShutdown()

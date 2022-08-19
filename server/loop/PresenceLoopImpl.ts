@@ -1,20 +1,27 @@
-import { chromeDebugPort, host, log, writeOptions } from '../util/misc';
+import {log, writeOptions} from '../util/misc';
 import prettyMilliseconds from 'pretty-ms';
-import { Options, PresenceStatus, waitForCondition } from '../../src/common/common';
-import { Schedule } from '../schedule/Schedule';
-import { isEqual } from 'lodash';
-import axios from 'axios';
-import { Notifier, PresenceLoop, PresenceService } from '../types';
+import {Options, PresenceStatus, waitForCondition} from '../../src/common/common';
+import {Schedule} from '../schedule/Schedule';
+import {isEqual} from 'lodash';
+import {Notifier, PresenceLoop, PresenceService} from '../types';
+import {DevToolsService} from '../relogin/DevToolsService';
 
 export class PresenceLoopImpl extends PresenceLoop {
   private readonly presenceService: PresenceService;
   private readonly schedule: Schedule;
   private options: Options;
   private notifiers: Notifier[];
-  private readonly status: PresenceStatus = { status: 'inactive' };
+  private readonly status: PresenceStatus = {status: 'inactive'};
+  private devToolsService: DevToolsService;
 
-  constructor(service: PresenceService, notifiers: Notifier[], options: Options) {
+  constructor(
+      service: PresenceService,
+      notifiers: Notifier[],
+      devToolsService: DevToolsService,
+      options: Options,
+  ) {
     super();
+    this.devToolsService = devToolsService;
     this.presenceService = service;
     this.notifiers = notifiers;
     this.options = options;
@@ -75,42 +82,42 @@ export class PresenceLoopImpl extends PresenceLoop {
 
   private createSchedule() {
     return new Schedule(
-      this.options.start,
-      this.options.end,
-      async () => {
-        log.info('[schedule] Presence enabled');
-        await Promise.all([
-          this.enableLoop(),
-          this.notify(
-            'Slack presence started',
-            'Starting to appear online on Slack at ' +
-              `${this.options.slackUrl} from ${this.options.start} to ${this.options.end}.`,
-          ),
-        ]);
-      },
-      async () => {
-        log.info('[schedule] Presence disabled');
-        await Promise.all([
-          this.disableLoop(),
-          this.notify('Slack presence stopped', 'Stopping to appear online on Slack.'),
-        ]);
-      },
+        this.options.start,
+        this.options.end,
+        async () => {
+          log.info('[schedule] Presence enabled');
+          await Promise.all([
+            this.enableLoop(),
+            this.notify(
+                'Slack presence started',
+                'Starting to appear online on Slack at ' +
+                `${this.options.slackUrl} from ${this.options.start} to ${this.options.end}.`,
+            ),
+          ]);
+        },
+        async () => {
+          log.info('[schedule] Presence disabled');
+          await Promise.all([
+            this.disableLoop(),
+            this.notify('Slack presence stopped', 'Stopping to appear online on Slack.'),
+          ]);
+        },
     );
   }
 
   private async enableLoop() {
-    await this.saveOptionsAndChangeState({ enabled: true });
+    await this.saveOptionsAndChangeState({enabled: true});
   }
 
   private async disableLoop() {
-    await this.saveOptionsAndChangeState({ enabled: false });
+    await this.saveOptionsAndChangeState({enabled: false});
   }
 
   private mainLoop() {
     setTimeout(async () => {
       try {
         while (this.options?.enabled) {
-          this.updateStatus({ status: 'loading' });
+          this.updateStatus({status: 'loading'});
           if (!(await this.presenceService.load(this.options.slackUrl))) {
             await this.reactWithFailed();
             break;
@@ -136,7 +143,7 @@ export class PresenceLoopImpl extends PresenceLoop {
               startISOTime: this.schedule.nextStart()?.toISOString(),
             });
           else {
-            this.updateStatus({ status: 'inactive' });
+            this.updateStatus({status: 'inactive'});
           }
         }
 
@@ -148,8 +155,8 @@ export class PresenceLoopImpl extends PresenceLoop {
       } catch (e) {
         log.error(e);
         await this.notify(
-          'Slack presence failed',
-          `Unexpected error occurred: ${(e as Error)?.message}. Exiting.`,
+            'Slack presence failed',
+            `Unexpected error occurred: ${(e as Error)?.message}. Exiting.`,
         );
         process.exit(1);
       }
@@ -159,9 +166,9 @@ export class PresenceLoopImpl extends PresenceLoop {
   private async reactWithFailed() {
     await this.disableLoop();
     await this.notify(
-      'Failed to load Slack',
-      'Slack presence failed to load your Slack workspace.',
-      true,
+        'Failed to load Slack',
+        'Slack presence failed to load your Slack workspace.',
+        true,
     );
     this.updateStatus({
       status: 'failedToLoad',
@@ -173,10 +180,10 @@ export class PresenceLoopImpl extends PresenceLoop {
     await this.statusNeedsReLogin();
 
     await this.notify(
-      'Re-login to Slack',
-      'Slack presence failed to load your Slack workspace. ' +
+        'Re-login to Slack',
+        'Slack presence failed to load your Slack workspace. ' +
         'Please open the app and re-login to Slack manually there.',
-      true,
+        true,
     );
     await this.waitForReLogin();
   }
@@ -186,7 +193,7 @@ export class PresenceLoopImpl extends PresenceLoop {
       log.info('Status is equal to previous status');
     } else {
       log.info(
-        `Emitting PresenceLoop status change: ${this.status.status} -> ${value.status}`,
+          `Emitting PresenceLoop status change: ${this.status.status} -> ${value.status}`,
       );
       (this as any).status = value;
       this.emit('status', value);
@@ -197,13 +204,13 @@ export class PresenceLoopImpl extends PresenceLoop {
     // noinspection ES6MissingAwait
     const imagePromise = screen ? this.presenceService.getScreenshot() : undefined;
     await Promise.all(
-      this.notifiers.map(notifier => notifier.notify(title, message, imagePromise)),
+        this.notifiers.map(notifier => notifier.notify(title, message, imagePromise)),
     );
   }
 
   private async startLoop() {
     log.info('Loop started.');
-    const { avatarUrls, userName } = await this.presenceService.getActiveData();
+    const {avatarUrls, userName} = await this.presenceService.getActiveData();
     this.updateStatus({
       status: 'active',
       avatarUrl: avatarUrls[0],
@@ -216,32 +223,28 @@ export class PresenceLoopImpl extends PresenceLoop {
   private async waitForReLogin() {
     log.info('Waiting for re-login or re-enable...');
     await waitForCondition(
-      async () => {
-        const loaded = await this.presenceService.waitLoaded(1000);
-        const active = loaded && (await this.presenceService.waitActive(1000));
-        if (loaded && active) {
-          await this.enableLoop();
-          return true;
-        }
-        return this.options.enabled;
-      },
-      undefined,
-      500,
+        async () => {
+          const loaded = await this.presenceService.waitLoaded(1000);
+          const active = loaded && (await this.presenceService.waitActive(1000));
+          if (loaded && active) {
+            await this.enableLoop();
+            return true;
+          }
+          return this.options.enabled;
+        },
+        undefined,
+        500,
     );
 
     await this.notify(
-      'Logged in to Slack',
-      'Slack presence has managed to login to Slack back again.',
-      true,
+        'Logged in to Slack',
+        'Slack presence has managed to login to Slack back again.',
+        true,
     );
   }
 
   private async statusNeedsReLogin() {
-    const chromeUrl = `http://${host}:${chromeDebugPort}`;
-    const result = await axios.get(`${chromeUrl}/json`);
-    let devtoolsFrontendUrl = result?.data?.[0]?.devtoolsFrontendUrl;
-    log.info('DevTools URL: ' + devtoolsFrontendUrl);
-    if (devtoolsFrontendUrl) devtoolsFrontendUrl = `${chromeUrl}${devtoolsFrontendUrl}`;
+    const devtoolsFrontendUrl = await this.devToolsService.getDevtoolsFrontendUrl();
 
     this.updateStatus({
       status: 'needsReLogin',

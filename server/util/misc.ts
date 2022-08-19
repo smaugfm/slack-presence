@@ -6,10 +6,6 @@ import fs from 'fs';
 import { Options, WsClientMessage, WsServerMessage } from '../../src/common/common';
 
 export const log = createSimpleLogger();
-export const chromeDebugPort = parseInt(process.env.CHROME_DEBUG_PORT || '9222');
-
-export const port = parseInt(process.env.PORT || '9333');
-export const host = process.env.HOST || 'localhost';
 
 export function takeScreenshot(page: Page): Promise<Buffer> {
   return page.screenshot({ type: 'png', encoding: 'binary' }) as Promise<Buffer>;

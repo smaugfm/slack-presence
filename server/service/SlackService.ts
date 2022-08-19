@@ -1,7 +1,7 @@
 import { PresenceService, PresenceServiceTimeouts, UserActiveData } from '../types';
 import { Browser, Page } from 'puppeteer';
-import { createBrowser, waitForSelector } from '../../util/browser';
-import { log, takeScreenshot } from '../../util/misc';
+import { createBrowser, waitForSelector } from '../util/browser';
+import { log, takeScreenshot } from '../util/misc';
 
 export class SlackService implements PresenceService {
   private browser: Browser | undefined;

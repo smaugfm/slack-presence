@@ -1,5 +1,5 @@
 import TypedEmitter from 'typed-emitter';
-import { Options, PresenceStatus } from '../../src/common/common';
+import { Options, PresenceStatus } from '../src/common/common';
 import EventEmitter from 'events';
 
 export type UserActiveData = {

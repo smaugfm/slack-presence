@@ -1,5 +1,5 @@
 import { PresenceService } from '../types';
-import { log, measure } from '../../util/misc';
+import { log, measure } from '../util/misc';
 import prettyMilliseconds from "pretty-ms";
 
 export class ServiceLogWrapper<T> implements PresenceService<T> {

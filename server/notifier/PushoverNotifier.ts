@@ -1,5 +1,5 @@
 import { Notifier, NotifierFactory } from '../types';
-import { log } from '../../util/misc';
+import { log } from '../util/misc';
 import FormData from 'form-data';
 import axios from 'axios';
 

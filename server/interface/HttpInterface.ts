@@ -3,8 +3,8 @@ import expressWs from 'express-ws';
 import path from 'path';
 import fs from 'fs';
 import WebSocket from 'ws';
-import { Options } from '../../../src/common/common';
-import { host, log, onWsMessage, port, route, wsSend } from '../../util/misc';
+import { Options } from '../../src/common/common';
+import { host, log, onWsMessage, port, route, wsSend } from '../util/misc';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import {

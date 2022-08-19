@@ -1,14 +1,14 @@
-import { PresenceLoopImpl } from './presence/loop/PresenceLoopImpl';
+import { PresenceLoopImpl } from './loop/PresenceLoopImpl';
 import { gracefulShutdown } from 'node-schedule';
-import { HttpInterfaceFactory } from './presence/interface/HttpInterface';
+import { HttpInterfaceFactory } from './interface/HttpInterface';
 import { chromeDebugPort, readOptions } from './util/misc';
-import { config } from 'dotenv';
-import { SlackService } from './presence/service/SlackService';
-import { ServiceLogWrapper } from './presence/service/ServiceLogWrapper';
-import { PushoverNotifierFactory } from './presence/notifier/PushoverNotifier';
-import { Notifier } from './presence/types';
+import { config as dotEnvConfig } from 'dotenv';
+import { SlackService } from './service/SlackService';
+import { ServiceLogWrapper } from './service/ServiceLogWrapper';
+import { PushoverNotifierFactory } from './notifier/PushoverNotifier';
+import { Notifier } from './types';
 
-config();
+dotEnvConfig();
 
 const options = readOptions('options.json');
 
@@ -33,4 +33,4 @@ process.on('SIGINT', function () {
     .then(() => process.exit(0));
 });
 
-httpInterface?.start().then(presenceLoop.start);
+httpInterface?.start().then(() => presenceLoop.start());

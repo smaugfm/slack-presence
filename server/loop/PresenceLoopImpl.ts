@@ -1,6 +1,6 @@
-import { chromeDebugPort, host, log, writeOptions } from '../../util/misc';
+import { chromeDebugPort, host, log, writeOptions } from '../util/misc';
 import prettyMilliseconds from 'pretty-ms';
-import { Options, PresenceStatus, waitForCondition } from '../../../src/common/common';
+import { Options, PresenceStatus, waitForCondition } from '../../src/common/common';
 import { Schedule } from '../schedule/Schedule';
 import { isEqual } from 'lodash';
 import axios from 'axios';

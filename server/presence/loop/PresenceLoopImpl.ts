@@ -1,31 +1,22 @@
-import { chromeDebugPort, host, log, writeOptions } from '../util/misc';
+import { chromeDebugPort, host, log, writeOptions } from '../../util/misc';
 import prettyMilliseconds from 'pretty-ms';
-import { Options, PresenceStatus, waitForCondition } from '../../src/common/common';
-import EventEmitter from 'events';
-import TypedEmitter from 'typed-emitter';
-import { Schedule } from './Schedule';
+import { Options, PresenceStatus, waitForCondition } from '../../../src/common/common';
+import { Schedule } from '../schedule/Schedule';
 import { isEqual } from 'lodash';
 import axios from 'axios';
-import { Notifier, PresenceService } from './types';
-import { PushoverNotifier } from './notifier/PushoverNotifier';
+import { Notifier, PresenceLoop, PresenceService } from '../types';
 
-type PresenceLoopEvents = {
-  status: (status: PresenceStatus) => void;
-  options: (options: Options) => void;
-};
-
-export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<PresenceLoopEvents>) {
+export class PresenceLoopImpl extends PresenceLoop {
   private readonly presenceService: PresenceService;
   private readonly schedule: Schedule;
   private options: Options;
-  private notifiers: Notifier[] = [new PushoverNotifier().createNotifier()].filter(
-    x => x,
-  ) as Notifier[];
+  private notifiers: Notifier[];
   private readonly status: PresenceStatus = { status: 'inactive' };
 
-  constructor(service: PresenceService, options: Options) {
+  constructor(service: PresenceService, notifiers: Notifier[], options: Options) {
     super();
     this.presenceService = service;
+    this.notifiers = notifiers;
     this.options = options;
     this.schedule = this.createSchedule();
     log.info('PresenceLoop status: ', this.status);
@@ -39,17 +30,17 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
     return this.status;
   }
 
-  async start() {
+  public async start() {
     await this.presenceService.init();
 
     this.mainLoop();
   }
 
-  close() {
+  public close() {
     return this.presenceService.close();
   }
 
-  async saveOptionsAndChangeState(newOptions: Partial<Options>) {
+  public async saveOptionsAndChangeState(newOptions: Partial<Options>) {
     const prevOpts = this.options;
     this.options = {
       ...this.options,
@@ -58,7 +49,7 @@ export class PresenceLoop extends (EventEmitter as new () => TypedEmitter<Presen
 
     if (isEqual(prevOpts, this.options)) {
       log.info('Nothing to do, new options are equal to prev options.');
-      return this.options;
+      return;
     }
 
     if (this.options.start !== prevOpts.start || this.options.end !== prevOpts.end) {

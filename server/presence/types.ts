@@ -1,3 +1,7 @@
+import TypedEmitter from 'typed-emitter';
+import { Options, PresenceStatus } from '../../src/common/common';
+import EventEmitter from 'events';
+
 export type UserActiveData = {
   avatarUrls: string[];
   userName: string;
@@ -32,4 +36,29 @@ export interface Notifier {
 
 export interface NotifierFactory {
   createNotifier(): Notifier | undefined;
+}
+
+export type PresenceLoopEvents = {
+  status: (status: PresenceStatus) => void;
+  options: (options: Options) => void;
+};
+
+export abstract class PresenceLoop extends (EventEmitter as new () => TypedEmitter<PresenceLoopEvents>) {
+  public abstract getOptions(): Options;
+
+  public abstract getStatus(): PresenceStatus;
+
+  public abstract start(): Promise<void>;
+
+  public abstract close(): void;
+
+  public abstract saveOptionsAndChangeState(newOptions: Partial<Options>): Promise<void>;
+}
+
+export interface LoopControlerInterfaceFactory {
+  create(loop: PresenceLoop): LoopControlInterface | undefined
+}
+
+export interface LoopControlInterface {
+  start(): Promise<void>
 }

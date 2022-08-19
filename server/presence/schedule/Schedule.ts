@@ -1,6 +1,6 @@
 import { Job, RecurrenceRule, scheduleJob } from 'node-schedule';
-import { parseDate } from '../../src/common/common';
-import { log } from '../util/misc';
+import { parseDate } from '../../../src/common/common';
+import { log } from '../../util/misc';
 
 export class Schedule {
   private startJob: Job | undefined;

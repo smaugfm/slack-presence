@@ -1,10 +1,12 @@
-import { PresenceLoop } from './presence/PresenceLoop';
+import { PresenceLoopImpl } from './presence/loop/PresenceLoopImpl';
 import { gracefulShutdown } from 'node-schedule';
-import { setupExpress } from './util/express';
-import { chromeDebugPort, host, port, readOptions } from './util/misc';
+import { HttpInterfaceFactory } from './presence/interface/HttpInterface';
+import { chromeDebugPort, readOptions } from './util/misc';
 import { config } from 'dotenv';
 import { SlackService } from './presence/service/SlackService';
 import { ServiceLogWrapper } from './presence/service/ServiceLogWrapper';
+import { PushoverNotifierFactory } from './presence/notifier/PushoverNotifier';
+import { Notifier } from './presence/types';
 
 config();
 
@@ -16,11 +18,14 @@ const slackService = new ServiceLogWrapper(
     waitActive: 10_000,
   }),
 );
-const presenceLoop = new PresenceLoop(slackService, options);
 
-const app = setupExpress(presenceLoop);
+const notifiers: Notifier[] = [PushoverNotifierFactory.createNotifier()].filter(
+  x => !!x,
+) as Notifier[];
 
-console.log(`Listening on http://${host}:${port}...`);
+const presenceLoop = new PresenceLoopImpl(slackService, notifiers, options);
+
+const httpInterface = HttpInterfaceFactory.create(presenceLoop);
 
 process.on('SIGINT', function () {
   gracefulShutdown()
@@ -28,6 +33,4 @@ process.on('SIGINT', function () {
     .then(() => process.exit(0));
 });
 
-app?.listen(port, host, async () => {
-  await presenceLoop.start();
-});
+httpInterface?.start().then(presenceLoop.start);

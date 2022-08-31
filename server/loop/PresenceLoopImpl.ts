@@ -4,7 +4,7 @@ import {Options, PresenceStatus, waitForCondition} from '../../src/common/common
 import {Schedule} from '../schedule/Schedule';
 import {isEqual} from 'lodash';
 import {Notifier, PresenceLoop, PresenceService} from '../types';
-import {DevToolsService} from '../relogin/DevToolsService';
+import {DevToolsService} from '../devtools/DevToolsService';
 
 export class PresenceLoopImpl extends PresenceLoop {
   private readonly presenceService: PresenceService;

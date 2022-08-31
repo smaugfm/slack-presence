@@ -55,7 +55,7 @@ export abstract class PresenceLoop extends (EventEmitter as new () => TypedEmitt
   public abstract saveOptionsAndChangeState(newOptions: Partial<Options>): Promise<void>;
 }
 
-export interface LoopControlerInterfaceFactory {
+export interface LoopControlInterfaceFactory {
   create(loop: PresenceLoop): LoopControlInterface | undefined
 }
 

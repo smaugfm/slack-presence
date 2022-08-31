@@ -8,14 +8,14 @@ import { log, onWsMessage, route, wsSend } from '../util/misc';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import {
-  LoopControlerInterfaceFactory,
+  LoopControlInterfaceFactory,
   LoopControlInterface,
   PresenceLoop,
 } from '../types';
 
 const frontPathCandidates = [['..', '..', 'build'], ['build']];
 
-export class HttpInterfaceFactory implements LoopControlerInterfaceFactory {
+export class HttpInterfaceFactory implements LoopControlInterfaceFactory {
   private host: string;
   private port: number;
 

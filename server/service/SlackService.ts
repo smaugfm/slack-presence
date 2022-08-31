@@ -111,7 +111,6 @@ export class SlackService implements PresenceService {
 
   private async isSlackLoaded(page: Page, timeout: number): Promise<boolean> {
     try {
-      await page.waitForSelector(topNavSelector, { timeout });
       await page.waitForSelector(statusSelector, { timeout });
 
       return true;
@@ -131,7 +130,6 @@ export class SlackService implements PresenceService {
   }
 }
 
-const topNavSelector = 'body > div.p-client_container > div > div.p-top_nav';
 const statusSelector =
   '#c-coachmark-anchor > button > div > ' +
   'i.c-icon.p-ia__nav__user__presence.c-presence.c-presence--active.c-icon--presence-online';

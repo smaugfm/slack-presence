@@ -7,7 +7,7 @@ import { SlackService } from './service/SlackService';
 import { ServiceLogWrapper } from './service/ServiceLogWrapper';
 import { PushoverNotifierFactory } from './notifier/PushoverNotifier';
 import { Notifier } from './types';
-import { DevToolsService } from './relogin/DevToolsService';
+import { DevToolsService } from './devtools/DevToolsService';
 
 dotEnvConfig();
 
@@ -19,8 +19,8 @@ const options = readOptions('options.json');
 
 const slackService = new ServiceLogWrapper(
   new SlackService(options.userDataDir, chromeDebugPort, {
-    waitLoad: 10_000,
-    waitActive: 10_000,
+    waitLoad: 20_000,
+    waitActive: 20_000,
   }),
 );
 

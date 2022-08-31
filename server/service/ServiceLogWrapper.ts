@@ -21,9 +21,9 @@ export class ServiceLogWrapper<T> implements PresenceService<T> {
     log.info(`Closing ${this.service}.`);
   }
 
-  init(): Promise<void> {
-    log.info(`Initializing ${this.service}.`);
-    return this.inner.init();
+  async init(): Promise<void> {
+    await this.inner.init();
+    log.info(`Initialized ${this.service}.`);
   }
 
   async load(url: string): Promise<boolean> {

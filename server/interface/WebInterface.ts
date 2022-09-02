@@ -8,14 +8,14 @@ import { log, onWsMessage, route, wsSend } from '../util/misc';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import {
-  LoopControlInterfaceFactory,
   LoopControlInterface,
+  LoopControlInterfaceFactory,
   PresenceLoop,
 } from '../types';
 
 const frontPathCandidates = [['..', '..', 'build'], ['build']];
 
-export class HttpInterfaceFactory implements LoopControlInterfaceFactory {
+export class WebInterfaceFactory implements LoopControlInterfaceFactory {
   private host: string;
   private port: number;
 
@@ -69,6 +69,20 @@ export class HttpInterfaceFactory implements LoopControlInterfaceFactory {
     route(app, 'get', '/', async (req, res) => {
       const p = path.join(frontPath, 'index.html');
       res.sendFile(p);
+      res.end();
+    });
+    route(app, 'post', '/start', async (req, res) => {
+      await loop.saveOptionsAndChangeState({
+        enabled: true,
+      });
+      res.status(204);
+      res.end();
+    });
+    route(app, 'post', '/stop', async (req, res) => {
+      await loop.saveOptionsAndChangeState({
+        enabled: false,
+      });
+      res.status(204);
       res.end();
     });
     route<Partial<Options>>(app, 'patch', '/api/options', async (req, res) => {

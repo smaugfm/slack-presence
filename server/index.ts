@@ -1,6 +1,6 @@
 import { PresenceLoopImpl } from './loop/PresenceLoopImpl';
 import { gracefulShutdown } from 'node-schedule';
-import { HttpInterfaceFactory } from './interface/HttpInterface';
+import { WebInterfaceFactory } from './interface/WebInterface';
 import { readOptions } from './util/misc';
 import { config as dotEnvConfig } from 'dotenv';
 import { SlackService } from './service/SlackService';
@@ -37,7 +37,7 @@ const presenceLoop = new PresenceLoopImpl(
   options,
 );
 
-const httpInterface = new HttpInterfaceFactory(httpServerHost, httpServerPort).create(
+const webInterface = new WebInterfaceFactory(httpServerHost, httpServerPort).create(
   presenceLoop,
 );
 
@@ -47,4 +47,4 @@ process.on('SIGINT', function () {
     .then(() => process.exit(0));
 });
 
-httpInterface?.start().then(() => presenceLoop.start());
+webInterface?.start().then(() => presenceLoop.start());

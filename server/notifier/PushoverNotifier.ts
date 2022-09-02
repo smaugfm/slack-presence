@@ -1,5 +1,5 @@
-import { Notifier, NotifierFactory } from '../types';
-import { log } from '../util/misc';
+import {Notifier, NotifierFactory, NotifierUrl} from '../types';
+import {log} from '../util/misc';
 import FormData from 'form-data';
 import axios from 'axios';
 
@@ -12,9 +12,10 @@ export const PushoverNotifierFactory: NotifierFactory = {
 
     return {
       async notify(
-        title: string,
-        message: string,
-        imagePromise?: Promise<Buffer>,
+          title: string,
+          message: string,
+          imagePromise?: Promise<Buffer>,
+          url?: NotifierUrl,
       ): Promise<void> {
         const userKey = process.env.PUSHOVER_USER_KEY;
         const apiToken = process.env.PUSHOVER_API_TOKEN;
@@ -28,9 +29,18 @@ export const PushoverNotifierFactory: NotifierFactory = {
         form.append('user', userKey);
         form.append('title', title);
         form.append('message', message);
+        if (url) {
+          form.append('url', url.url);
+          if (url.urlTitle) form.append('url_title', url.urlTitle);
+        }
         const image = await imagePromise;
-        if (image) form.append('attachment', image, { filename: 'chrome.jpeg' });
+        if (image) form.append('attachment', image, {filename: 'chrome.jpeg'});
 
+        log.info("Sending Pushover notification: ", {
+          title,
+          message,
+          url
+        });
         return axios.post('https://api.pushover.net/1/messages.json', form, {
           headers: form.getHeaders(),
         });
@@ -41,7 +51,7 @@ export const PushoverNotifierFactory: NotifierFactory = {
 
 async function validateCredentials(token: string, userKey: string) {
   const result = await axios.post(
-    `https://api.pushover.net/1/users/validate.json?token=${token}&user=${userKey}`,
+      `https://api.pushover.net/1/users/validate.json?token=${token}&user=${userKey}`,
   );
   log.info('Pushover keys validation result: ', result.data);
 

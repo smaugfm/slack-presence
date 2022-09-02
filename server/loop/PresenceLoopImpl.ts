@@ -1,9 +1,9 @@
-import {log, writeOptions} from '../util/misc';
+import {getRemoteUrl, log, writeOptions} from '../util/misc';
 import prettyMilliseconds from 'pretty-ms';
 import {Options, PresenceStatus, waitForCondition} from '../../src/common/common';
 import {Schedule} from '../schedule/Schedule';
 import {isEqual} from 'lodash';
-import {Notifier, PresenceLoop, PresenceService} from '../types';
+import {Notifier, NotifierUrl, PresenceLoop, PresenceService} from '../types';
 import {DevToolsService} from '../devtools/DevToolsService';
 
 export class PresenceLoopImpl extends PresenceLoop {
@@ -76,7 +76,11 @@ export class PresenceLoopImpl extends PresenceLoop {
     }
 
     await writeOptions('options.json', this.options);
-    if (!this.options.enabled) log.info('Loop stopped...');
+    if (!this.options.enabled) {
+      log.info('Loop stopped...');
+      await this.notifyLoopStopped();
+    }
+
     this.emit('options', this.options);
   }
 
@@ -84,38 +88,48 @@ export class PresenceLoopImpl extends PresenceLoop {
     return new Schedule(
         this.options.start,
         this.options.end,
-        async () => {
+        () => {
           log.info('[schedule] Presence enabled');
-          await Promise.all([
-            this.enableLoop(),
-            this.notify(
-                'Slack presence started',
-                'Starting to appear online on Slack at ' +
-                `${this.options.slackUrl} from ${this.options.start} to ${this.options.end}.`,
-            ),
-          ]);
+          return this.enableLoop();
         },
-        async () => {
+        () => {
           log.info('[schedule] Presence disabled');
-          await Promise.all([
-            this.disableLoop(),
-            this.notify('Slack presence stopped', 'Stopping to appear online on Slack.'),
-          ]);
+          return this.disableLoop();
         },
     );
   }
 
   private async enableLoop() {
     await this.saveOptionsAndChangeState({enabled: true});
+    await this.notifyLoopStarted();
   }
 
   private async disableLoop() {
     await this.saveOptionsAndChangeState({enabled: false});
+    await this.notifyLoopStopped();
+  }
+
+  private async notifyLoopStarted() {
+    await this.notify(
+        'Slack presence started',
+        'Starting to appear online on Slack at ' +
+        `${this.options.slackUrl} from ${this.options.start} to ${this.options.end}. To stop visit the link below:`,
+        getRemoteUrl('/stop', 'Stop Slack presence'),
+    );
+  }
+
+  private async notifyLoopStopped() {
+    await this.notify(
+        'Slack presence stopped',
+        'Stopping to appear online on Slack. To start again visit the link below:',
+        getRemoteUrl('/start', 'Start Slack presence'),
+    );
   }
 
   private mainLoop() {
     setTimeout(async () => {
       try {
+        let firstIteration = true;
         while (this.options?.enabled) {
           this.updateStatus({status: 'loading'});
           if (!(await this.presenceService.load(this.options.slackUrl))) {
@@ -132,6 +146,11 @@ export class PresenceLoopImpl extends PresenceLoop {
           }
 
           await this.startLoop();
+          if (firstIteration) {
+            firstIteration = false;
+            await this.notifyLoopStarted();
+          }
+
           const interval = this.options.intervalMinutes * 1000 * 60;
           log.info(`Waiting for ${prettyMilliseconds(interval)}...`);
           await waitForCondition(() => !this.options.enabled, interval);
@@ -168,6 +187,7 @@ export class PresenceLoopImpl extends PresenceLoop {
     await this.notify(
         'Failed to load Slack',
         'Slack presence failed to load your Slack workspace.',
+        undefined,
         true,
     );
     this.updateStatus({
@@ -183,6 +203,7 @@ export class PresenceLoopImpl extends PresenceLoop {
         'Re-login to Slack',
         'Slack presence failed to load your Slack workspace. ' +
         'Please open the app and re-login to Slack manually there.',
+        undefined,
         true,
     );
     await this.waitForReLogin();
@@ -200,11 +221,16 @@ export class PresenceLoopImpl extends PresenceLoop {
     }
   }
 
-  private async notify(title: string, message: string, screen = false) {
+  private async notify(
+      title: string,
+      message: string,
+      url?: NotifierUrl,
+      screen = false,
+  ) {
     // noinspection ES6MissingAwait
     const imagePromise = screen ? this.presenceService.getScreenshot() : undefined;
     await Promise.all(
-        this.notifiers.map(notifier => notifier.notify(title, message, imagePromise)),
+        this.notifiers.map(notifier => notifier.notify(title, message, imagePromise, url)),
     );
   }
 
@@ -235,12 +261,7 @@ export class PresenceLoopImpl extends PresenceLoop {
         undefined,
         500,
     );
-
-    await this.notify(
-        'Logged in to Slack',
-        'Slack presence has managed to login to Slack back again.',
-        true,
-    );
+    await this.notifyLoopStarted();
   }
 
   private async statusNeedsReLogin() {

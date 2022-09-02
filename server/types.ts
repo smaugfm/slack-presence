@@ -30,8 +30,13 @@ export interface PresenceService<T = UserActiveData> {
   close(): void;
 }
 
+export interface NotifierUrl {
+  url: string;
+  urlTitle?: string;
+}
+
 export interface Notifier {
-  notify(title: string, message: string, imagePromise?: Promise<Buffer>): Promise<void>;
+  notify(title: string, message: string, imagePromise?: Promise<Buffer>, url?: NotifierUrl): Promise<void>;
 }
 
 export interface NotifierFactory {

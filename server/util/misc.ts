@@ -4,6 +4,7 @@ import WebSocket from 'ws';
 import { Page } from 'puppeteer';
 import fs from 'fs';
 import { Options, WsClientMessage, WsServerMessage } from '../../src/common/common';
+import { NotifierUrl } from '../types';
 
 export const log = createSimpleLogger();
 
@@ -79,6 +80,11 @@ const defaultOptions: Options = {
   start: '09:00',
   end: '18:00',
 };
+
+export function getRemoteUrl(path: string, title: string): NotifierUrl | undefined {
+  if (!process.env.REMOTE_URL_BASE) return;
+  return { url: `${process.env.REMOTE_URL_BASE}${path}`, urlTitle: title };
+}
 
 export async function measure<T>(fn: () => Promise<T>): Promise<[T, number]> {
   const start = performance.now();

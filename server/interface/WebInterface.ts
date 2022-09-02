@@ -1,7 +1,7 @@
 import express from 'express';
 import expressWs from 'express-ws';
 import path from 'path';
-import fs from 'fs';
+import fs, { promises } from 'fs';
 import WebSocket from 'ws';
 import { Options } from '../../src/common/common';
 import { log, onWsMessage, route, wsSend } from '../util/misc';
@@ -38,6 +38,16 @@ export class WebInterfaceFactory implements LoopControlInterfaceFactory {
     }
 
     app.use(morgan('dev'));
+
+    route(app, 'get', '/', async (req, res) => {
+      const p = path.join(frontPath, 'index.html');
+      const indexHtml = await promises.readFile(p, 'utf-8');
+      res.send(
+        indexHtml.replace(/\bwindow\.WS_PORT\s*=\s*9333;?/, `window.WS_PORT = ${this.port};`),
+      );
+      res.end();
+    });
+
     app.use(express.static(frontPath));
 
     let socket: WebSocket | undefined;
@@ -66,19 +76,14 @@ export class WebInterfaceFactory implements LoopControlInterfaceFactory {
       });
     });
 
-    route(app, 'get', '/', async (req, res) => {
-      const p = path.join(frontPath, 'index.html');
-      res.sendFile(p);
-      res.end();
-    });
-    route(app, 'post', '/start', async (req, res) => {
+    route(app, 'get', '/start', async (req, res) => {
       await loop.saveOptionsAndChangeState({
         enabled: true,
       });
       res.status(204);
       res.end();
     });
-    route(app, 'post', '/stop', async (req, res) => {
+    route(app, 'get', '/stop', async (req, res) => {
       await loop.saveOptionsAndChangeState({
         enabled: false,
       });

@@ -101,35 +101,16 @@ export class PresenceLoopImpl extends PresenceLoop {
 
   private async enableLoop() {
     await this.saveOptionsAndChangeState({enabled: true});
-    await this.notifyLoopStarted();
   }
 
   private async disableLoop() {
     await this.saveOptionsAndChangeState({enabled: false});
-    await this.notifyLoopStopped();
-  }
-
-  private async notifyLoopStarted() {
-    await this.notify(
-        'Slack presence started',
-        'Starting to appear online on Slack at ' +
-        `${this.options.slackUrl} from ${this.options.start} to ${this.options.end}. To stop visit the link below:`,
-        getRemoteUrl('/stop', 'Stop Slack presence'),
-    );
-  }
-
-  private async notifyLoopStopped() {
-    await this.notify(
-        'Slack presence stopped',
-        'Stopping to appear online on Slack. To start again visit the link below:',
-        getRemoteUrl('/start', 'Start Slack presence'),
-    );
   }
 
   private mainLoop() {
     setTimeout(async () => {
       try {
-        let firstIteration = true;
+        let first = true;
         while (this.options?.enabled) {
           this.updateStatus({status: 'loading'});
           if (!(await this.presenceService.load(this.options.slackUrl))) {
@@ -146,9 +127,9 @@ export class PresenceLoopImpl extends PresenceLoop {
           }
 
           await this.startLoop();
-          if (firstIteration) {
-            firstIteration = false;
+          if (first) {
             await this.notifyLoopStarted();
+            first = false;
           }
 
           const interval = this.options.intervalMinutes * 1000 * 60;
@@ -262,6 +243,23 @@ export class PresenceLoopImpl extends PresenceLoop {
         500,
     );
     await this.notifyLoopStarted();
+  }
+
+  private async notifyLoopStarted() {
+    await this.notify(
+        'Slack presence started',
+        'Starting to appear online on Slack at ' +
+        `${this.options.slackUrl} from ${this.options.start} to ${this.options.end}. To stop visit the link below:`,
+        getRemoteUrl('/stop', 'Stop Slack presence'),
+    );
+  }
+
+  private async notifyLoopStopped() {
+    await this.notify(
+        'Slack presence stopped',
+        'Stopping to appear online on Slack. To start again visit the link below:',
+        getRemoteUrl('/start', 'Start Slack presence'),
+    );
   }
 
   private async statusNeedsReLogin() {

@@ -27,7 +27,7 @@ export class ServiceLogWrapper<T> implements PresenceService<T> {
   }
 
   async load(url: string): Promise<boolean> {
-    log.info(`Loading ${this.service}: ${url}...`);
+    log.info(`Loading ${this.service}: ${url} ...`);
     const [result, ms] = await measure(() => this.inner.load(url));
     if (result)
       log.info(`Loaded ${this.service} ${url} in ${prettyMilliseconds(ms)}`);

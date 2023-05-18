@@ -34,7 +34,9 @@ export class SlackService implements PresenceService {
     if (!this.browser || !this.page) this.throwNotInitialized();
 
     try {
-      await this.page.goto(url);
+      await this.page.goto(url, {
+        waitUntil: "domcontentloaded"
+      });
       return true;
     } catch (e) {
       log.error(e);

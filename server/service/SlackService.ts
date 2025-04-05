@@ -127,16 +127,14 @@ export class SlackService implements PresenceService {
 
   private getIsActiveFunc() {
     return `
-    !!document.querySelector("${statusSelector}")?.title?.toLowerCase()?.includes("active")
+    !!document.querySelector("${statusSelector}")?.getAttribute("title")?.toLowerCase()?.includes("active")
   `;
   }
 }
 
 const statusSelector =
-  '#c-coachmark-anchor > button > div > ' +
-  'i.c-icon.p-ia__nav__user__presence.c-presence.c-presence--active.c-icon--presence-online';
-const avatarSelector = '#c-coachmark-anchor > button > div > span > span > img';
+  "div[role='toolbar'] div.c-coachmark-anchor span.c-avatar__presence.c-presence.c-presence--active.block > svg";
+const avatarSelector = 'div[role="toolbar"] div.c-coachmark-anchor span.c-base_icon__width_only_container img';
 const nameSelector =
   'body > div.ReactModalPortal > div > div > div > div > div > div > ' +
   'div:nth-child(1) > div > div.p-ia__main_menu__user__details > div > span';
-

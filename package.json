@@ -62,7 +62,7 @@
     "node-schedule": "^2.1.0",
     "prettier": "^2.7.1",
     "pretty-ms": "^7.0.1",
-    "puppeteer": "^15.1.1",
+    "puppeteer": "15.1.1",
     "react": "^18.2.0",
     "react-app-rewired": "^2.2.1",
     "react-dom": "^18.2.0",

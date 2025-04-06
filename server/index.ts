@@ -14,11 +14,13 @@ dotEnvConfig();
 const chromeDebugPort = parseInt(process.env.CHROME_DEBUG_PORT || '9222');
 const httpServerHost = process.env.HTTP_SERVER_HOST || 'localhost';
 const httpServerPort = parseInt(process.env.HTTP_SERVER_PORT || '9333');
+const chromeExecutablePath =
+  process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser';
 
 const options = readOptions('options.json');
 
 const slackService = new ServiceLogWrapper(
-  new SlackService(options.userDataDir, chromeDebugPort, {
+  new SlackService(options.userDataDir, chromeDebugPort, chromeExecutablePath, {
     waitLoad: 20_000,
     waitActive: 20_000,
   }),

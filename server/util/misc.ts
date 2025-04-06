@@ -1,7 +1,7 @@
 import { createSimpleLogger } from 'simple-node-logger';
 import { Application, IRouter, Request, Response } from 'express';
 import WebSocket from 'ws';
-import { Page } from 'puppeteer';
+import { Page } from 'puppeteer-core';
 import fs from 'fs';
 import { Options, WsClientMessage, WsServerMessage } from '../../src/common/common';
 import { NotifierUrl } from '../types';

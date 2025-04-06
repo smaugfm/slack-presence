@@ -1,9 +1,7 @@
 import puppeteer, {
-  BrowserConnectOptions,
-  BrowserLaunchArgumentOptions,
   LaunchOptions,
   Page,
-} from 'puppeteer';
+} from 'puppeteer-core';
 import { log } from './misc';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -12,13 +10,14 @@ import * as path from 'path';
 export async function createBrowser(
   userDataDir: string,
   debuggingPort: number,
-  options: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions = {},
+  executablePath: string,
+  options: LaunchOptions = {},
 ) {
   await ensureUserDir(userDataDir);
 
   const browser = await puppeteer.launch({
     userDataDir,
-    dumpio: !!process.env.PUPPETEER_DUMPIO,
+    executablePath,
     headless: true,
     args: [
       '--disable-dev-shm-usage',

@@ -1,5 +1,5 @@
 import { PresenceService, PresenceServiceTimeouts, UserActiveData } from '../types';
-import { Browser, Page } from 'puppeteer';
+import { Browser, Page } from 'puppeteer-core';
 import { createBrowser, waitForSelector } from '../util/browser';
 import { log, takeScreenshot } from '../util/misc';
 
@@ -8,15 +8,18 @@ export class SlackService implements PresenceService {
   private page: Page | undefined;
   private readonly userDataDir: string;
   private readonly chromeDebugPort: number;
+  private readonly executablePath: string;
   private readonly timeouts: PresenceServiceTimeouts;
 
   constructor(
     useDataDir: string,
     chromeDebugPort: number,
+    executablePath: string,
     defaultTimeouts: PresenceServiceTimeouts,
   ) {
     this.userDataDir = useDataDir;
     this.chromeDebugPort = chromeDebugPort;
+    this.executablePath = executablePath;
     this.timeouts = defaultTimeouts;
   }
 
@@ -25,7 +28,11 @@ export class SlackService implements PresenceService {
   }
 
   async init(): Promise<void> {
-    const res = await createBrowser(this.userDataDir, this.chromeDebugPort);
+    const res = await createBrowser(
+      this.userDataDir,
+      this.chromeDebugPort,
+      this.executablePath
+    );
     this.browser = res.browser;
     this.page = res.page;
   }

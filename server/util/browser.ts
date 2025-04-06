@@ -18,6 +18,7 @@ export async function createBrowser(
 
   const browser = await puppeteer.launch({
     userDataDir,
+    dumpio: !!process.env.PUPPETEER_DUMPIO,
     headless: true,
     args: [
       '--disable-dev-shm-usage',

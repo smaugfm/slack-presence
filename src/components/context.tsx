@@ -78,9 +78,9 @@ const connectionStatus = {
 };
 
 export function ServerContext(props: PropsWithChildren<unknown>) {
-  const port = window.WS_PORT || '9333';
+  const port = window.location.protocol === "https:" ? "" : window.WS_PORT || '9333';
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket<WsServerMessage>(
-    `ws://${window.location.hostname}:${port}/api/socket`,
+    `${window.location.protocol.replaceAll("http", "ws")}//${window.location.hostname}:${port}/api/socket`,
   );
   useEffect(() => {
     if (readyState) console.log('[ws] ' + connectionStatus[readyState]);

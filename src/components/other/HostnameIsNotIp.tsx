@@ -1,9 +1,7 @@
 import { Column } from '../common/layout';
 import { Body1 } from '../common/typography';
 
-type Props = {};
-
-export function HostnameIsNotIp(props: Props) {
+export function HostnameIsNotIp() {
   return (
     <Column sx={{ alignItems: 'center' }}>
       <Body1>

@@ -25,15 +25,36 @@ For the initial setup follow these steps:
    ```
 4. Visit [http://localhost:9333](http://localhost:9333) and:
     - Enter your Slack workspace URL.
-    - Optionally change online appearance schedule, or leave the default 9am to 6pm.
+    - Optionally, change an online appearance schedule, or leave the default 9am to 6pm.
     - Enable Slack-presence
-5. For the first time you will have to manually login to your Slack workspace within internal
-   browser. Wait for the message to appear and then follow instructions.
+5. For the first time you will have to manually log in to your Slack workspace.
+   Ensure you have the Chrome browser installed and follow instructions [here](#manual-log-in).
 6. You are good to go! You now appear as Active on Slack from Monday till Friday by your selected
    schedule.
 7. Optional. Setup [Pushover](https://pushover.net/) notifications.
 
-From time to time your Slack login session will expire and you will have to re-login manually.
+From time to time your Slack login session will expire, and you will have to re-log in manually.
+
+### Manual log in
+
+To manually log in to your Slack workspace,
+you will use the built-in Chrome feature that enables connection to a remote headless Chrome
+instance that Slack workspace launched:
+
+1. Open Chrome browser
+2. Go to `chrome://inspect` page
+3. Configure a new network target:
+    1. Click 'Configure' under the 'Devices' section
+    2. Add a new list entry with an IP address or hostname of your Slack presence app and Chrome
+       remote debugging port (default is `9222`)
+    3. Click 'Done'
+4. Now tab or multiple tabs from an internal Slack Presence Chrome headless instance must appear
+   under the 'Remote Target' section. Try refreshing `chrome://inspect` page if they don't.
+5. Click 'inspect' on the first tab
+6. A dedicated DevTools page will open with a page asking you to log in to your Slack workspace
+7. Follow your typical log in procedure
+8. After a successful login, you will see your Slack workspace loaded, and you have now finished
+   manual log in to Slack
 
 ### Pushover notifications
 
@@ -70,16 +91,14 @@ There are several approaches to make Slack believe that you are active:
 4. Slack API (no longer works)
 5. Third-party (usually paid and proprietary) services, like [this](https://presencescheduler.com/)
    one.
-6. Selenium (or simiar) tool to drive a Slack web browser tab.
+6. Selenium (or similar) tool to drive a Slack web browser tab.
 
 This tool uses approach #6 as the most reliable and consistent one. It's basically like #1, but
 automated.
 It uses [Puppeteer](https://pptr.dev/) to start and drive a headless (with no graphical UI but
-full-featured)
-Chrome instance which logs in to Slack web app at your provided workspace URL and then periodically
-refreshes the page to
-make you appear active.
-As slack uses two-factor authentication and captcha you have to login to Slack web manually for the
+full-featured) Chrome instance which logs in to Slack web app at your provided workspace URL and
+then periodically refreshes the page to make you appear active.
+As Slack uses two-factor authentication and captcha you have to log in to Slack web manually for the
 first time (and then from time to time when login session expires)
 but fortunately [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/)
 allows you to remotely

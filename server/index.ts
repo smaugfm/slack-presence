@@ -7,7 +7,6 @@ import { SlackService } from './service/SlackService';
 import { ServiceLogWrapper } from './service/ServiceLogWrapper';
 import { PushoverNotifierFactory } from './notifier/PushoverNotifier';
 import { Notifier } from './types';
-import { DevToolsService } from './devtools/DevToolsService';
 
 dotEnvConfig();
 
@@ -30,12 +29,9 @@ const notifiers: Notifier[] = [PushoverNotifierFactory.createNotifier()].filter(
   x => !!x,
 ) as Notifier[];
 
-const devToolsService = new DevToolsService(httpServerHost, chromeDebugPort);
-
 const presenceLoop = new PresenceLoopImpl(
   slackService,
   notifiers,
-  devToolsService,
   options,
 );
 

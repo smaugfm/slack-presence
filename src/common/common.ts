@@ -101,7 +101,6 @@ export type PresenceStatus =
     }
   | {
       status: 'needsReLogin';
-      devtoolsFrontendUrl?: string;
     }
   | {
       status: 'outOfSchedule';

@@ -7,8 +7,8 @@ import React, {
   useState,
 } from 'react';
 import {
-  Settings,
   PresenceStatus,
+  Settings,
   WsClientMessage,
   WsServerMessage,
 } from '../common/common';
@@ -53,20 +53,8 @@ export function useSettings(): [
   return [context.settings, onChange];
 }
 
-function changeHostnameToLocationHostname(url: string | undefined) {
-  if (!url) return undefined;
-
-  return url.replaceAll(new URL(url).hostname, window.location.hostname);
-}
-
 export function useStatus() {
-  const value = useContext(Context);
-  if (value.status?.status === 'needsReLogin' && value.status.devtoolsFrontendUrl) {
-    value.status.devtoolsFrontendUrl = changeHostnameToLocationHostname(
-      value.status.devtoolsFrontendUrl,
-    );
-  }
-  return value.status;
+  return useContext(Context).status;
 }
 
 const connectionStatus = {

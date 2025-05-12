@@ -7,7 +7,6 @@
     </scripts>
     <node-interpreter value="project" />
     <envs>
-      <env name="PUPPETEER_EXECUTABLE_PATH" value="/Applications/Chromium.app/Contents/MacOS/Chromium" />
       <env name="TS_NODE_FILES" value="true" />
     </envs>
     <method v="2" />

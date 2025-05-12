@@ -16,7 +16,6 @@ export async function createBrowser(
   const browser = await puppeteer.launch({
     userDataDir,
     headless: true,
-    browser: "chrome",
     args: [
       '--disable-dev-shm-usage',
       '--disable-gpu',

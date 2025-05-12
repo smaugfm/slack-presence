@@ -1,23 +1,9 @@
-FROM alpine:3.21.3
+FROM ghcr.io/puppeteer/puppeteer:24.8.2
 
-RUN apk add --no-cache \
-      chromium \
-      nss \
-      freetype \
-      harfbuzz \
-      ca-certificates \
-      ttf-freefont \
-      nodejs \
-      dumb-init
+USER root
+RUN apt update && apt install dumb-init
 
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-RUN addgroup -S pptruser && adduser -S -g pptruser pptruser \
-    && mkdir -p /home/pptruser/Downloads /opt/app \
-    && chown -R pptruser:pptruser /home/pptruser \
-    && chown -R pptruser:pptruser /opt/app
-
-# Run everything after as non-privileged user.
+RUN mkdir -p /opt/app && chown -R pptruser:pptruser /opt/app
 USER pptruser
 
 COPY ./dist /opt/app

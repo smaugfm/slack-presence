@@ -19,10 +19,8 @@ export async function createBrowser(
     args: [
       '--disable-dev-shm-usage',
       '--disable-gpu',
-      '--no-sandbox',
       '--window-size=1920,1080',
       '--start-maximized',
-      '--disable-setuid-sandbox',
       '--remote-debugging-address=0.0.0.0',
       `--remote-debugging-port=${debuggingPort}`,
     ],

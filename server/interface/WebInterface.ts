@@ -1,5 +1,4 @@
 import express from 'express';
-import expressWs from 'express-ws';
 import path from 'path';
 import fs, { promises } from 'fs';
 import WebSocket from 'ws';
@@ -12,6 +11,7 @@ import {
   LoopControlInterfaceFactory,
   PresenceLoop,
 } from '../types';
+import * as http from 'node:http';
 
 const frontPathCandidates = [['..', '..', 'build'], ['build']];
 
@@ -25,7 +25,9 @@ export class WebInterfaceFactory implements LoopControlInterfaceFactory {
   }
 
   create(loop: PresenceLoop): LoopControlInterface | undefined {
-    const app = expressWs(express().use(bodyParser.json())).app;
+    const app = express().use(bodyParser.json());
+    const httpServer = http.createServer(app);
+    const webSocketServer = new WebSocket.Server({ noServer: true });
 
     const frontPath = frontPathCandidates
       .map(x => path.join(__dirname, ...x))
@@ -43,37 +45,53 @@ export class WebInterfaceFactory implements LoopControlInterfaceFactory {
       const p = path.join(frontPath, 'index.html');
       const indexHtml = await promises.readFile(p, 'utf-8');
       res.send(
-        indexHtml.replace(/\bwindow\.WS_PORT\s*=\s*9333;?/, `window.WS_PORT = ${this.port};`),
+        indexHtml.replace(
+          /\bwindow\.WS_PORT\s*=\s*9333;?/,
+          `window.WS_PORT = ${this.port};`,
+        ),
       );
       res.end();
     });
 
     app.use(express.static(frontPath));
 
-    let socket: WebSocket | undefined;
-    app.ws('/api/socket', ws => {
-      socket = ws;
-      ws.on('error', err => {
+    let socket: WebSocket.WebSocket | undefined;
+    const wsPath = '/api/socket';
+
+    webSocketServer.on('connection', (server: WebSocket.WebSocket) => {
+      // socket = server;
+      server.on('error', err => {
         log.info('[ws] error ', err);
       });
-      ws.on('close', () => {
+      server.on('close', () => {
         socket = undefined;
       });
-      ws.on('message', msg => {
+      server.on('message', msg => {
         log.info(`[ws] received '${msg}'`);
       });
-      onWsMessage(ws, 'initial', () => {
+      onWsMessage(server, 'initial', () => {
         log.info(`[ws] sending status ${JSON.stringify(loop.getStatus())}`);
-        wsSend(ws, {
+        wsSend(server, {
           type: 'status',
           status: loop.getStatus(),
         });
         log.info(`[ws] sending settings ${JSON.stringify(loop.getOptions())}`);
-        wsSend(ws, {
+        wsSend(server, {
           type: 'settings',
           settings: loop.getOptions(),
         });
       });
+    });
+
+    httpServer.on('upgrade', (req, socket, head) => {
+      const { pathname } = new URL(req.url!, 'wss://base.url');
+      if (pathname === wsPath) {
+        webSocketServer.handleUpgrade(req, socket, head, ws => {
+          webSocketServer.emit('connection', ws, req);
+        });
+      } else {
+        socket.destroy();
+      }
     });
 
     route(app, 'get', '/start', async (req, res) => {
@@ -113,10 +131,11 @@ export class WebInterfaceFactory implements LoopControlInterfaceFactory {
     });
 
     const that = this;
+
     return {
       start() {
         return new Promise(resolve => {
-          app.listen(that.port, that.host, () => {
+          httpServer.listen(that.port, that.host, () => {
             console.log(`Listening on http://${that.host}:${that.port}...`);
             resolve();
           });

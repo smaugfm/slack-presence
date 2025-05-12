@@ -75,7 +75,7 @@ async function getLatestChromeVersion(): Promise<String | undefined> {
 
 // This is where we'll put the code to get around the tests.
 async function spoofHeadless(page: Page) {
-  const latestChromeVersion = await getLatestChromeVersion() || '136.0.0.0';
+  const latestChromeVersion = (await getLatestChromeVersion()) || '136.0.0.0';
   log.info('Chrome version for User-Agent test: ', latestChromeVersion);
 
   // Pass the User-Agent Test.

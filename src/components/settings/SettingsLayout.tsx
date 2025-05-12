@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { TimePicker } from '@mui/x-date-pickers';
+import { renderTimeViewClock, TimePicker } from '@mui/x-date-pickers';
 import { Switch, TextField } from '@mui/material';
 import { useLink } from 'valuelink';
 import { Column, Row } from '../common/layout';
@@ -90,9 +90,17 @@ export function SettingsLayout({ settings, onChangeSetting }: Props) {
           onChange={v => handleChange('start')(v ? formatDate(v) : undefined)}
           ampm={false}
           ampmInClock={false}
-          renderInput={params => (
-            <TextField sx={{ flex: 1, mr: 2 }} {...params} fullWidth />
-          )}
+          viewRenderers={{
+            hours: renderTimeViewClock,
+            minutes: renderTimeViewClock,
+            seconds: renderTimeViewClock,
+          }}
+          slotProps={{
+            textField: {
+              sx: { flex: 1, mr: 2 },
+              fullWidth: true,
+            },
+          }}
         />
 
         <TimePicker
@@ -101,7 +109,17 @@ export function SettingsLayout({ settings, onChangeSetting }: Props) {
           onChange={v => handleChange('end')(v ? formatDate(v) : undefined)}
           ampm={false}
           ampmInClock={false}
-          renderInput={params => <TextField sx={{ flex: 1 }} {...params} fullWidth />}
+          viewRenderers={{
+            hours: renderTimeViewClock,
+            minutes: renderTimeViewClock,
+            seconds: renderTimeViewClock,
+          }}
+          slotProps={{
+            textField: {
+              sx: { flex: 1 },
+              fullWidth: true,
+            },
+          }}
         />
       </Row>
     </Column>

@@ -12,12 +12,12 @@ export function takeScreenshot(page: Page): Promise<Buffer> {
   return page.screenshot({ type: 'png', encoding: 'binary' }) as Promise<Buffer>;
 }
 
-export function wsSend(socket: WebSocket | undefined, data: WsServerMessage) {
+export function wsSend(socket: WebSocket.WebSocket | undefined, data: WsServerMessage) {
   socket?.send(JSON.stringify(data));
 }
 
 export function onWsMessage<T extends WsClientMessage['type']>(
-  socket: WebSocket | undefined,
+  socket: WebSocket.WebSocket | undefined,
   type: T,
   handler: (msg: Extract<WsClientMessage, { type: T }>) => void,
 ) {

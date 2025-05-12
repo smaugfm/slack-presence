@@ -1,4 +1,5 @@
 import isURL from 'validator/lib/isURL';
+import dayjs, { Dayjs } from 'dayjs';
 
 export type Options = {
   enabled: boolean;
@@ -32,16 +33,8 @@ export type WsClientMessage =
 
 export type Settings = Pick<Options, 'enabled' | 'slackUrl' | 'start' | 'end'>;
 
-export function formatDate(time: Date) {
-  const hours = time.getHours();
-  const minutes = time.getMinutes();
-  if (isNaN(hours) || isNaN(minutes)) return undefined;
-
-  function format(n: number) {
-    return n.toString().padStart(2, '0');
-  }
-
-  return `${format(hours)}:${format(minutes)}`;
+export function formatDate(time: Dayjs) {
+  return time.format('HH:mm');
 }
 
 export function isUrlValid(url: string) {
@@ -52,7 +45,7 @@ export function isUrlValid(url: string) {
   });
 }
 
-export function parseDate(s?: string): Date | undefined {
+export function parseDate(s?: string): Dayjs | undefined {
   if (!s) return undefined;
 
   const hours = parseInt(s.split(':')[0]);
@@ -60,7 +53,7 @@ export function parseDate(s?: string): Date | undefined {
   if (isNaN(hours) || isNaN(minutes)) return undefined;
   const d = new Date(0);
   d.setHours(hours, minutes, 0, 0);
-  return d;
+  return dayjs(d);
 }
 
 export function delay(ms: number) {

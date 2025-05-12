@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import {
   AppBar,
@@ -14,6 +13,7 @@ import { H6 } from './components/common/typography';
 import { SettingsCard } from './components/settings/SettingsCard';
 import { StatusCard } from './components/status/StatusCard';
 import { ServerContext } from './components/context';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 function App() {
   const t = useMemo(() => createTheme({}), []);
@@ -31,7 +31,7 @@ function App() {
 
   return (
     <ThemeProvider theme={t}>
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
         <CssBaseline />
         <Global styles={globalStyles} />
         <AppBar

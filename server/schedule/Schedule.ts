@@ -28,8 +28,8 @@ export class Schedule {
     rule.second = 0;
     rule.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     rule.dayOfWeek = [1, 2, 3, 4, 5];
-    rule.hour = date.getHours();
-    rule.minute = date.getMinutes();
+    rule.hour = date.hour();
+    rule.minute = date.minute();
 
     return rule;
   }

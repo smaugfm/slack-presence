@@ -1,5 +1,6 @@
 import { formatDate } from '../../common/common';
 import { useMemo } from 'react';
+import dayjs from 'dayjs';
 
 enum DaysDiff {
   Past,
@@ -21,11 +22,11 @@ export function useRelativeDateTime(target: Date | undefined, prepositions = tru
         console.error('Invocation time must be in the future. ', target);
         return undefined;
       case DaysDiff.Today:
-        return `${at}${formatDate(target)}`;
+        return `${at}${formatDate(dayjs(target))}`;
       case DaysDiff.Tomorrow:
-        return `tomorrow ${at}${formatDate(target)}`;
+        return `tomorrow ${at}${formatDate(dayjs(target))}`;
       case DaysDiff.More:
-        return `${on}${getDayOfTheWeekStr(target.getDay())} ${at}${formatDate(target)}`;
+        return `${on}${getDayOfTheWeekStr(target.getDay())} ${at}${formatDate(dayjs(target))}`;
     }
   }, [prepositions, target]);
 }

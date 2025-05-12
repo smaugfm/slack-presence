@@ -5,7 +5,8 @@ import { Box, Button, Link, Modal } from '@mui/material';
 import { css } from '@emotion/react';
 import { ThirdPartyCookiesGuide } from '../other/ThirdPartyCookiesGuide';
 import { HostnameIsNotIp } from '../other/HostnameIsNotIp';
-import { hostIsLocalOrIp } from '../common/other';
+import { dnsLookup, isDesktopChrome, isHostnameValidForDevtools } from '../common/other';
+import { useAsync } from 'react-use';
 
 type Props = {
   devtoolsUrl?: string;
@@ -14,35 +15,61 @@ type Props = {
 export function NeedsReLoginStatus({ devtoolsUrl }: Props) {
   const [iframeOpen, setIframeOpen] = useState(false);
   const [thirdPartyGuide, setThirdPartyGuide] = useState(false);
-  const hostnameValid = hostIsLocalOrIp(window.location.hostname);
+  let devToolsUrlValid = isHostnameValidForDevtools(window.location.hostname);
+  const dnsState = useAsync(() => dnsLookup(window.location.hostname));
+  if (!devToolsUrlValid && !!devtoolsUrl && !dnsState.loading && !!dnsState.value) {
+    const url = new URL(devtoolsUrl);
+    url.hostname = dnsState.value;
+    devtoolsUrl = url.toString();
+    devToolsUrlValid = true;
+  }
+  const isChrome = isDesktopChrome();
+  if (!isChrome) {
+    devtoolsUrl = undefined;
+  }
 
   return (
     <>
-      {hostnameValid ? (
+      {devToolsUrlValid ? (
         <Column sx={{ alignItems: 'center' }}>
           <Body1>
             Slack Presence couldn't load your Slack workspace. Most likely, your Slack
             Login session has expired and you have to re-login manually.
-            <br />
-            Click the button below to open Slack presence internal browser and then login
-            to your Slack workspace. When you are done enable Slack presence again.
+            {!isChrome &&
+              <>
+                <br />
+                Please open this page in <b>Google Chrome</b> browser
+              </>
+            }
+            {!!devtoolsUrl && (
+              <>
+                <br />
+                Click the button below to open Slack presence internal browser and then
+                login to your Slack workspace. When you are done enable Slack presence
+                again.
+              </>
+            )}
           </Body1>
-          <Button
-            disabled={!devtoolsUrl}
-            sx={{ my: 2 }}
-            fullWidth={false}
-            variant='contained'
-            onClick={() => setIframeOpen(true)}
-          >
-            Open browser
-          </Button>
-          <Body2>
-            If you see a blank page you may have to enable third-party cookies. Click{' '}
-            <Link href='#' onClick={() => setThirdPartyGuide(true)}>
-              here
-            </Link>{' '}
-            here to see how to do this.
-          </Body2>
+          {!!devtoolsUrl && (
+            <>
+              <Button
+                disabled={!devtoolsUrl}
+                sx={{ my: 2 }}
+                fullWidth={false}
+                variant='contained'
+                onClick={() => setIframeOpen(true)}
+              >
+                Open browser
+              </Button>
+              <Body2>
+                If you see a blank page you may have to enable third-party cookies. Click{' '}
+                <Link href='#' onClick={() => setThirdPartyGuide(true)}>
+                  here
+                </Link>{' '}
+                here to see how to do this.
+              </Body2>
+            </>
+          )}
         </Column>
       ) : (
         <HostnameIsNotIp />

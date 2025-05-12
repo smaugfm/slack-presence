@@ -6,7 +6,6 @@ import { log } from './misc';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-
 export async function createBrowser(
   userDataDir: string,
   debuggingPort: number,
@@ -63,12 +62,28 @@ export async function waitForSelector(page: Page, selector: string, name?: strin
   }
 }
 
+async function getLatestChromeVersion(): Promise<String | undefined> {
+  try {
+    const resp = await fetch(
+      'https://versionhistory.googleapis.com/v1/chrome/platforms/linux/channels/stable/versions',
+    );
+    const json = await resp.json();
+    return json.versions[0].version;
+  } catch (e) {
+    log.error('Failed to get latest chrome version: ', e);
+    return undefined;
+  }
+}
+
 // This is where we'll put the code to get around the tests.
 async function spoofHeadless(page: Page) {
+  const latestChromeVersion = await getLatestChromeVersion() || '136.0.0.0';
+  log.info('Chrome version for User-Agent test: ', latestChromeVersion);
+
   // Pass the User-Agent Test.
   const userAgent =
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' +
-    '(KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36';
+    `(KHTML, like Gecko) Chrome/${latestChromeVersion} Safari/537.36`;
   await page.setUserAgent(userAgent);
 
   // Pass the Webdriver Test.

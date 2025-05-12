@@ -4,7 +4,6 @@ import {Options, PresenceStatus, waitForCondition} from '../../src/common/common
 import {Schedule} from '../schedule/Schedule';
 import {isEqual} from 'lodash';
 import {Notifier, NotifierUrl, PresenceLoop, PresenceService} from '../types';
-import {DevToolsService} from '../devtools/DevToolsService';
 
 export class PresenceLoopImpl extends PresenceLoop {
   private readonly presenceService: PresenceService;
@@ -12,16 +11,13 @@ export class PresenceLoopImpl extends PresenceLoop {
   private options: Options;
   private notifiers: Notifier[];
   private readonly status: PresenceStatus = {status: 'inactive'};
-  private devToolsService: DevToolsService;
 
   constructor(
       service: PresenceService,
       notifiers: Notifier[],
-      devToolsService: DevToolsService,
       options: Options,
   ) {
     super();
-    this.devToolsService = devToolsService;
     this.presenceService = service;
     this.notifiers = notifiers;
     this.options = options;
@@ -263,11 +259,8 @@ export class PresenceLoopImpl extends PresenceLoop {
   }
 
   private async statusNeedsReLogin() {
-    const devtoolsFrontendUrl = await this.devToolsService.getDevtoolsFrontendUrl();
-
     this.updateStatus({
-      status: 'needsReLogin',
-      devtoolsFrontendUrl,
+      status: 'needsReLogin'
     });
   }
 }

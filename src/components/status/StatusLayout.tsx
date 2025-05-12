@@ -25,7 +25,7 @@ export function StatusLayout({ status }: Props) {
       ) : status.status === 'loading' ? (
         <LoadingStatus />
       ) : status.status === 'needsReLogin' ? (
-        <NeedsReLoginStatus devtoolsUrl={status.devtoolsFrontendUrl} />
+        <NeedsReLoginStatus />
       ) : status.status === 'outOfSchedule' ? (
         <OutOfScheduleStatus
           start={status.startISOTime ? new Date(status.startISOTime) : undefined}

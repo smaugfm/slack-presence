@@ -1,5 +1,5 @@
 import { PresenceService, PresenceServiceTimeouts, UserActiveData } from '../types';
-import { Browser, Page } from 'puppeteer-core';
+import { Browser, Page } from 'puppeteer';
 import { createBrowser, waitForSelector } from '../util/browser';
 import { log, takeScreenshot } from '../util/misc';
 
@@ -8,18 +8,15 @@ export class SlackService implements PresenceService {
   private page: Page | undefined;
   private readonly userDataDir: string;
   private readonly chromeDebugPort: number;
-  private readonly executablePath: string;
   private readonly timeouts: PresenceServiceTimeouts;
 
   constructor(
     useDataDir: string,
     chromeDebugPort: number,
-    executablePath: string,
     defaultTimeouts: PresenceServiceTimeouts,
   ) {
     this.userDataDir = useDataDir;
     this.chromeDebugPort = chromeDebugPort;
-    this.executablePath = executablePath;
     this.timeouts = defaultTimeouts;
   }
 
@@ -28,11 +25,7 @@ export class SlackService implements PresenceService {
   }
 
   async init(): Promise<void> {
-    const res = await createBrowser(
-      this.userDataDir,
-      this.chromeDebugPort,
-      this.executablePath
-    );
+    const res = await createBrowser(this.userDataDir, this.chromeDebugPort);
     this.browser = res.browser;
     this.page = res.page;
   }
@@ -42,7 +35,7 @@ export class SlackService implements PresenceService {
 
     try {
       await this.page.goto(url, {
-        waitUntil: "domcontentloaded"
+        waitUntil: 'domcontentloaded',
       });
       return true;
     } catch (e) {
@@ -141,7 +134,8 @@ export class SlackService implements PresenceService {
 
 const statusSelector =
   "div[role='toolbar'] div.c-coachmark-anchor span.c-avatar__presence.c-presence.c-presence--active.block > svg";
-const avatarSelector = 'div[role="toolbar"] div.c-coachmark-anchor span.c-base_icon__width_only_container img';
+const avatarSelector =
+  'div[role="toolbar"] div.c-coachmark-anchor span.c-base_icon__width_only_container img';
 const nameSelector =
   'body > div.ReactModalPortal > div > div > div > div > div > div > ' +
   'div:nth-child(1) > div > div.p-ia__main_menu__user__details > div > span';

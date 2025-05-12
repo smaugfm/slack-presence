@@ -16,13 +16,11 @@ const httpServerHost = process.env.HTTP_SERVER_HOST || 'localhost';
 const httpServerPort = parseInt(process.env.HTTP_SERVER_PORT || '9333');
 const waitLoadTimeoutMs = parseInt(process.env.WAIT_LOAD_TIMEOUT_MS || '20000');
 const waitActiveTimeoutMs = parseInt(process.env.WAIT_ACTIVE_TIMEOUT_MS || '20000');
-const chromeExecutablePath =
-  process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser';
 
 const options = readOptions('options.json');
 
 const slackService = new ServiceLogWrapper(
-  new SlackService(options.userDataDir, chromeDebugPort, chromeExecutablePath, {
+  new SlackService(options.userDataDir, chromeDebugPort, {
     waitLoad: waitLoadTimeoutMs,
     waitActive: waitActiveTimeoutMs,
   }),

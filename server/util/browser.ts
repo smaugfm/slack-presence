@@ -1,7 +1,7 @@
 import puppeteer, {
   LaunchOptions,
   Page,
-} from 'puppeteer-core';
+} from 'puppeteer';
 import { log } from './misc';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -9,15 +9,14 @@ import * as path from 'path';
 export async function createBrowser(
   userDataDir: string,
   debuggingPort: number,
-  executablePath: string,
   options: LaunchOptions = {},
 ) {
   await ensureUserDir(userDataDir);
 
   const browser = await puppeteer.launch({
     userDataDir,
-    executablePath,
     headless: true,
+    browser: "chrome",
     args: [
       '--disable-dev-shm-usage',
       '--disable-gpu',

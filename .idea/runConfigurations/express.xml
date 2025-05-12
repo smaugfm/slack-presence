@@ -7,7 +7,7 @@
     </scripts>
     <node-interpreter value="project" />
     <envs>
-      <env name="PUPPETEER_EXECUTABLE_PATH" value="$USER_HOME$/.cache/puppeteer/chrome-headless-shell/mac_arm-135.0.7049.42/chrome-headless-shell-mac-arm64/chrome-headless-shell" />
+      <env name="PUPPETEER_EXECUTABLE_PATH" value="/Applications/Chromium.app/Contents/MacOS/Chromium" />
       <env name="TS_NODE_FILES" value="true" />
     </envs>
     <method v="2" />

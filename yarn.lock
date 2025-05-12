@@ -2036,6 +2036,19 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.5.tgz#db5a11bf66bdab39569719555b0f76e138d7bd64"
   integrity sha512-9X2obfABZuDVLCgPK9aX0a/x4jaOEweTTWE2+9sr0Qqqevj2Uv5XorvusThmc9XGYpS9yI+fhh8RTafBtGposw==
 
+"@puppeteer/browsers@2.10.4":
+  version "2.10.4"
+  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.10.4.tgz#9f8923b206f7932a06d32271b14bbea3368b38f2"
+  integrity sha512-9DxbZx+XGMNdjBynIs4BRSz+M3iRDeB7qRcAr6UORFLphCIM2x3DXgOucvADiifcqCE4XePFUKcnaAMyGbrDlQ==
+  dependencies:
+    debug "^4.4.0"
+    extract-zip "^2.0.1"
+    progress "^2.0.3"
+    proxy-agent "^6.5.0"
+    semver "^7.7.1"
+    tar-fs "^3.0.8"
+    yargs "^17.7.2"
+
 "@puppeteer/browsers@2.9.0":
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.9.0.tgz#744a2395b196530d9fffbc64df549689f06bc24e"
@@ -4277,6 +4290,14 @@ chromium-bidi@3.0.0:
     mitt "^3.0.1"
     zod "^3.24.1"
 
+chromium-bidi@5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/chromium-bidi/-/chromium-bidi-5.1.0.tgz#8d0e47f7ac9270262df29792318dd5378e983e62"
+  integrity sha512-9MSRhWRVoRPDG0TgzkHrshFSJJNZzfY5UFqUMuksg7zL1yoZIZ3jLB0YAgHclbiAxPI86pBnwDX1tbzoiV8aFw==
+  dependencies:
+    mitt "^3.0.1"
+    zod "^3.24.1"
+
 ci-info@^3.2.0:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-3.3.2.tgz#6d2967ffa407466481c6c90b6e16b3098f080128"
@@ -4711,6 +4732,16 @@ cosmiconfig@^7.0.0:
     parse-json "^5.0.0"
     path-type "^4.0.0"
     yaml "^1.10.0"
+
+cosmiconfig@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/cosmiconfig/-/cosmiconfig-9.0.0.tgz#34c3fc58287b915f3ae905ab6dc3de258b55ad9d"
+  integrity sha512-itvL5h8RETACmOTFc4UfIyB2RfEHi71Ax6E/PivVxq9NseKbOWpeyHEOIbmAw1rs8Ak0VursQNww7lf7YtUwzg==
+  dependencies:
+    env-paths "^2.2.1"
+    import-fresh "^3.3.0"
+    js-yaml "^4.1.0"
+    parse-json "^5.2.0"
 
 create-error-class@^3.0.0:
   version "3.0.2"
@@ -5211,6 +5242,11 @@ devtools-protocol@0.0.1425554:
   resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.1425554.tgz#51ed2fed1405f56783d24a393f7c75b6bbb58029"
   integrity sha512-uRfxR6Nlzdzt0ihVIkV+sLztKgs7rgquY/Mhcv1YNCWDh5IZgl5mnn2aeEnW5stYTE0wwiF4RYVz8eMEpV1SEw==
 
+devtools-protocol@0.0.1439962:
+  version "0.0.1439962"
+  resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.1439962.tgz#395c5ca1cd83aa451c667056a025f9873c4598c1"
+  integrity sha512-jJF48UdryzKiWhJ1bLKr7BFWUQCEIT5uCNbDLqkQJBtkFxYzILJH44WN0PDKMIlGDN7Utb8vyUY85C3w4R/t2g==
+
 dezalgo@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/dezalgo/-/dezalgo-1.0.4.tgz#751235260469084c132157dfa857f386d4c33d81"
@@ -5541,7 +5577,7 @@ entities@^2.0.0:
   resolved "https://registry.yarnpkg.com/entities/-/entities-2.2.0.tgz#098dc90ebb83d8dffa089d55256b351d34c4da55"
   integrity sha512-p92if5Nz619I0w+akJrLZH0MX0Pb5DX39XOwQTtXSdQQOaYH03S1uIQp4mhOZtAXrxq4ViO67YTiLBo2638o9A==
 
-env-paths@^2.2.0:
+env-paths@^2.2.0, env-paths@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/env-paths/-/env-paths-2.2.1.tgz#420399d416ce1fbe9bc0a07c62fa68d67fd0f8f2"
   integrity sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==
@@ -7301,6 +7337,14 @@ import-fresh@^3.0.0, import-fresh@^3.1.0, import-fresh@^3.2.1:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/import-fresh/-/import-fresh-3.3.0.tgz#37162c25fcb9ebaa2e6e53d5b4d88ce17d9e0c2b"
   integrity sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==
+  dependencies:
+    parent-module "^1.0.0"
+    resolve-from "^4.0.0"
+
+import-fresh@^3.3.0:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/import-fresh/-/import-fresh-3.3.1.tgz#9cecb56503c0ada1f2741dbbd6546e4b13b57ccf"
+  integrity sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==
   dependencies:
     parent-module "^1.0.0"
     resolve-from "^4.0.0"
@@ -10923,7 +10967,7 @@ punycode@^2.1.0, punycode@^2.1.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-puppeteer-core@*, puppeteer-core@24.6.0:
+puppeteer-core@*:
   version "24.6.0"
   resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.6.0.tgz#cea180600cd539d69517a63d8321c882f287ad06"
   integrity sha512-Cukxysy12m0v350bhl/Gzof0XQYmtON9l2VvGp3D4BOQZVgyf+y5wIpcjDZQ/896Okoi95dKRGRV8E6a7SYAQQ==
@@ -10934,6 +10978,30 @@ puppeteer-core@*, puppeteer-core@24.6.0:
     devtools-protocol "0.0.1425554"
     typed-query-selector "^2.12.0"
     ws "^8.18.1"
+
+puppeteer-core@24.8.2:
+  version "24.8.2"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.8.2.tgz#f3e939e39e001d9933e79d980371e380d9e535c1"
+  integrity sha512-wNw5cRZOHiFibWc0vdYCYO92QuKTbJ8frXiUfOq/UGJWMqhPoBThTKkV+dJ99YyWfzJ2CfQQ4T1nhhR0h8FlVw==
+  dependencies:
+    "@puppeteer/browsers" "2.10.4"
+    chromium-bidi "5.1.0"
+    debug "^4.4.0"
+    devtools-protocol "0.0.1439962"
+    typed-query-selector "^2.12.0"
+    ws "^8.18.2"
+
+puppeteer@24.8.2:
+  version "24.8.2"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.8.2.tgz#3ee6cfe74e4cc8dc4dd5cb4b553f4d4416df935f"
+  integrity sha512-Sn6SBPwJ6ASFvQ7knQkR+yG7pcmr4LfXzmoVp3NR0xXyBbPhJa8a8ybtb6fnw1g/DD/2t34//yirubVczko37w==
+  dependencies:
+    "@puppeteer/browsers" "2.10.4"
+    chromium-bidi "5.1.0"
+    cosmiconfig "^9.0.0"
+    devtools-protocol "0.0.1439962"
+    puppeteer-core "24.8.2"
+    typed-query-selector "^2.12.0"
 
 q@^1.1.2:
   version "1.5.1"
@@ -13941,6 +14009,11 @@ ws@^8.18.1:
   version "8.18.1"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.1.tgz#ea131d3784e1dfdff91adb0a4a116b127515e3cb"
   integrity sha512-RKW2aJZMXeMxVpnZ6bck+RswznaxmzdULiBr6KY7XkTnW8uvt0iT9H5DkHUChXrc+uurzwa0rVI16n/Xzjdz1w==
+
+ws@^8.18.2:
+  version "8.18.2"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.2.tgz#42738b2be57ced85f46154320aabb51ab003705a"
+  integrity sha512-DMricUmwGZUVr++AEAe2uiVM7UoO9MAVZMDu05UQOaUII0lp+zOzLLU4Xqh/JvTqklB1T4uELaaPBKyjE1r4fQ==
 
 ws@^8.4.2:
   version "8.8.0"
